@@ -23,3 +23,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('logout', [RegisterController::class, 'logout']);
 
 });
+
+Route::get('/health', function(Request $request){
+    return 'ok';
+});
