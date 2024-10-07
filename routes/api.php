@@ -14,7 +14,7 @@ Route::get('/user', function (Request $request) {
 Route::controller(RegisterController::class)->group(function(){
     Route::post('register', 'register');
     Route::post('login', 'login');
-
+    Route::post('users/upload-photo', 'uploadPhoto');
 });
 
 Route::middleware('auth:sanctum')->group( function () {

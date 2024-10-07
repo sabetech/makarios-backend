@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use App\Models\User;
 use App\Http\Controllers\API\BaseController as BaseController;
-
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Log;
 
 class RegisterController extends BaseController
 {
@@ -36,7 +37,7 @@ class RegisterController extends BaseController
         try {
             $user = User::create($input);
 
-            if ($input['email'] == "albert.mensahansah@gmail.com") {
+            if ($input['email'] == "makarioshq.church@gmail.com") {
                 $user->assignRole('Super Admin');
             }
 
@@ -44,8 +45,10 @@ class RegisterController extends BaseController
             return $this->sendError('User Registration Error:', $e->getMessage());
         }
 
+        $user->roles;
+
         $success['token'] =  $user->createToken('makarios-pwa')->plainTextToken;
-        $success['name'] =  $user->name;
+        $success['user'] =  $user;
 
         return $this->sendResponse($success, 'User register successfully.');
     }
@@ -68,6 +71,43 @@ class RegisterController extends BaseController
         else{
             return $this->sendError('Unauthorised.', ['error'=>'User Credentials Incorrect'], 401);
         }
+    }
+
+    public function uploadPhoto(Request $request): JsonResponse {
+
+        $file = $request->get('image');
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+        }
+
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'user_id' => 'required'
+        ]);
+
+        $result = Cloudinary::upload($file->getRealPath(), [
+            'folder' => 'app-users',
+            'public_id' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+            'overwrite' => false,
+            'resource_type' => 'image',
+        ]);
+
+        // Get the URL of the uploaded image
+        $imageUrl = $result->getSecurePath();
+
+        $user = User::find($request->user_id);
+        $user->roles;
+        if ($user) {
+            $user->update([
+                'img_url' => $imageUrl
+            ]);
+        }else {
+            return $this->sendError('User not found.', ['error'=>'User not found'], 404);
+        }
+
+        return $this->sendResponse($user, 'User photo uploaded successfully.');
+
     }
 
     public function logout(): JsonResponse
