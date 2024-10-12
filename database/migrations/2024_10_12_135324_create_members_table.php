@@ -1,0 +1,41 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('members', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->date('date_of_birth')->nullable();
+            $table->string('phone')->nullable();
+            $table->enum('gender', ['male', 'female'])->nullable();
+            $table->text('address')->nullable();
+            $table->string('img_url')->nullable();
+            $table->string('latlng')->nullable();
+            $table->unsignedBigInteger('user_id')->references('id')->on('users')->nullable();
+            $table->unsignedBigInteger('church_id')->references('id')->on('churches');
+            $table->unsignedBigInteger('bacenta_id')->references('id')->on('bacentas');
+            $table->unsignedBigInteger('location_id')->references('id')->on('locations');
+            $table->unsignedBigInteger('council_id')->references('id')->on('councils');
+            $table->unsignedBigInteger('fellowship_leader_id')->references('id')->on('users');
+            $table->unsignedBigInteger('bacenta_leader_id')->references('id')->on('users');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('members');
+    }
+};
