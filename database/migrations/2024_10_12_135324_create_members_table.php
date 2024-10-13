@@ -16,17 +16,21 @@ return new class extends Migration
             $table->string('name');
             $table->date('date_of_birth')->nullable();
             $table->string('phone')->nullable();
+            $table->string('whatsapp')->nullable();
             $table->enum('gender', ['male', 'female'])->nullable();
+            $table->text('email')->nullable();
             $table->text('address')->nullable();
+            $table->text('occupation')->nullable();
+            $table->enum('marital_status', ['single', 'married'])->nullable();
             $table->string('img_url')->nullable();
-            $table->string('latlng')->nullable();
             $table->unsignedBigInteger('user_id')->references('id')->on('users')->nullable();
             $table->unsignedBigInteger('church_id')->references('id')->on('churches');
-            $table->unsignedBigInteger('bacenta_id')->references('id')->on('bacentas');
-            $table->unsignedBigInteger('location_id')->references('id')->on('locations');
-            $table->unsignedBigInteger('council_id')->references('id')->on('councils');
-            $table->unsignedBigInteger('fellowship_leader_id')->references('id')->on('users');
-            $table->unsignedBigInteger('bacenta_leader_id')->references('id')->on('users');
+            $table->unsignedBigInteger('bacenta_id')->references('id')->on('bacentas')->nullable();
+            $table->unsignedBigInteger('location_id')->references('id')->on('locations')->nullable();
+            $table->unsignedBigInteger('council_id')->references('id')->on('councils')->nullable();
+            $table->unsignedBigInteger('fellowship_id')->references('id')->on('fellowships')->nullable();
+            $table->unsignedBigInteger('fellowship_leader_id')->references('id')->on('users')->nullable();
+            $table->unsignedBigInteger('bacenta_leader_id')->references('id')->on('users')->nullable();
             $table->timestamps();
         });
     }
