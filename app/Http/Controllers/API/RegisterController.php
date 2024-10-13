@@ -35,10 +35,10 @@ class RegisterController extends BaseController
         $input['password'] = bcrypt($input['password']);
         try {
             $user = User::create($input);
-
-            if ($input['email'] == "albert.mensahansah@gmail.com") {
-                $user->assignRole('Super Admin');
-            }
+            $user->assignRole('Overseer');
+            // if ($input['email'] == "albert.mensahansah@gmail.com") {
+            //     $user->assignRole('Super Admin');
+            // }
 
         }catch (Exception $e) {
             return $this->sendError('User Registration Error:', $e->getMessage());
