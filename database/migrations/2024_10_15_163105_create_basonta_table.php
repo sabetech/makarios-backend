@@ -11,12 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('councils', function (Blueprint $table) {
+        Schema::create('basontas', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('description')->nullale()->comment("This can describe what areas this council is focusing on");
-            $table->unsignedBigInteger('leader_id')->references('id')->on('users')->nullable();
-            $table->unsignedBigInteger('stream_id')->references('id')->on('streams');
             $table->timestamps();
         });
     }
@@ -26,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('councils');
+        Schema::dropIfExists('basonta');
     }
 };

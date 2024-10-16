@@ -53,7 +53,7 @@ class SetupRolesAndPermissions extends Command
         $fellowshipLeader = Role::create(['name' => 'Fellowship Leader']);
 
 
-        //Create Permissions
+
 
 
     }
