@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table('members', function (Blueprint $table) {
             //
-            $table->string('img_url')->nullable()->after('email');
+            $table->unsignedBigInteger('basonta_id')->references('id')->on('basontas')->after('bacenta_leader_id')->nullable();
         });
     }
 
@@ -22,9 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table('members', function (Blueprint $table) {
             //
-            $table->dropColumn('img_url');
         });
     }
 };

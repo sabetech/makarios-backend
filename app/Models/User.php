@@ -48,4 +48,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get Council the User belongs to.
+     *
+     * @var array<string, string>
+     */
+    public function council() {
+        return $this->hasOne(Council::class, 'leader_id', 'id');
+    }
+
 }

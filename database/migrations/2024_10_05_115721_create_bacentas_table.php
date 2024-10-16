@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('bacentas', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->unsignedBigInteger('location_id')->references('id')->on('locations');
-            $table->unsignedBigInteger('leader_id')->references('id')->on('users');
+            $table->unsignedBigInteger('location_id')->references('id')->on('locations')->nullable();
+            $table->unsignedBigInteger('leader_id')->references('id')->on('users')->nullable();
             $table->unsignedBigInteger('council_id')->references('id')->on('councils');
             $table->timestamps();
         });
