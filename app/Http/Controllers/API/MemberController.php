@@ -14,6 +14,23 @@ use Illuminate\Support\Facades\Auth;
 
 class MemberController extends BaseController
 {
+
+    public function index(){
+        $members = Member::select();
+        if (Auth::user()->roles->count() > 0) {
+            if ((Auth::user()->roles[0]->name) == 'Overseer' ) {
+                $members = $members->where('council_id', Auth::user()->council->id);
+            }
+
+            if ((Auth::user()->roles[0]->name) == 'Bacenta Leader') {
+                $members = $members->where('bacenta_id', Auth::user()->bacenta->id);
+            }
+
+        }
+        return $this->sendResponse($members->get(), 'Members retrieved successfully.');
+    }
+
+
     //
     public function create(Request $request){
 
