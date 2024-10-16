@@ -58,4 +58,8 @@ class User extends Authenticatable
         return $this->hasOne(Council::class, 'leader_id', 'id');
     }
 
+    public function bacenta() {
+        return $this->hasOne(Bacenta::class, 'leader_id', 'id');
+    }
+
 }
