@@ -23,14 +23,16 @@ return new class extends Migration
             $table->text('occupation')->nullable();
             $table->enum('marital_status', ['single', 'married'])->nullable();
             $table->string('img_url')->nullable();
-            $table->unsignedBigInteger('user_id')->references('id')->on('users')->nullable();
-            $table->unsignedBigInteger('church_id')->references('id')->on('churches');
+            $table->boolean('is_leader')->default(false);
+            $table->unsignedBigInteger('user_id')->references('id')->on('users')->nullable()->comment("member has registered on app so is probably a leaders!");
+            $table->unsignedBigInteger('church_id')->references('id')->on('churches')->nullable();
             $table->unsignedBigInteger('bacenta_id')->references('id')->on('bacentas')->nullable();
             $table->unsignedBigInteger('location_id')->references('id')->on('locations')->nullable();
             $table->unsignedBigInteger('council_id')->references('id')->on('councils')->nullable();
             $table->unsignedBigInteger('fellowship_id')->references('id')->on('fellowships')->nullable();
             $table->unsignedBigInteger('fellowship_leader_id')->references('id')->on('users')->nullable();
             $table->unsignedBigInteger('bacenta_leader_id')->references('id')->on('users')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

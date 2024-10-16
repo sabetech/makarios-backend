@@ -16,10 +16,10 @@ return new class extends Migration
             $table->string('name');
             $table->boolean('is_active')->default(true);
             $table->string('location_id')->nullable();
-            $table->unsignedBigInteger('bacenta_id')->references('id')->on('bacentas');
-            $table->unsignedBigInteger('council_id')->references('id')->on('councils');
-            $table->unsignedBigInteger('stream_id')->references('id')->on('streams');
-            $table->unsignedBigInteger('church_id')->references('id')->on('churches');
+            $table->unsignedBigInteger('bacenta_id')->references('id')->on('bacentas')->nullable();
+            $table->unsignedBigInteger('council_id')->references('id')->on('councils')->nullable();
+            $table->unsignedBigInteger('stream_id')->references('id')->on('streams')->nullable();
+            $table->unsignedBigInteger('church_id')->references('id')->on('churches')->nullable();
             $table->unsignedBigInteger('leader_id')->references('id')->on('users')->nullable();
             $table->timestamps();
         });
