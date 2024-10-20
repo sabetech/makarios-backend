@@ -103,7 +103,7 @@ class MemberController extends BaseController
             'img_url' => $imageUrl,
             'council_id' => $council_id,
             'bacenta_id' => intval($bacenta_id) === 0 ? null : $bacenta_id,
-            'basonta_id' => intval($basonta_id) === 0 ? null : $bacenta_id,
+            'basonta_id' => intval($basonta_id) === 0 ? null : $basonta_id,
             'location_id' => $location->id ?? null,
             'user_id' => $user->id ?? null
         ]);
