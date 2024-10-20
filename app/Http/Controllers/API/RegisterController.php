@@ -86,7 +86,7 @@ class RegisterController extends BaseController
         }
 
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:4096',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,jiff,jif|max:8192',
             'user_id' => 'required'
         ]);
 

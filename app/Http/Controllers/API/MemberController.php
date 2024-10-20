@@ -38,6 +38,8 @@ class MemberController extends BaseController
 
         Log::info($request->all());
 
+        Log::info("user?", ["User" => $request->user()]);
+
         $name = $request->get('member_name');
         $date_of_birth = $request->get('date_of_birth');
         $phone = $request->get('phone', null);
@@ -100,7 +102,8 @@ class MemberController extends BaseController
             'marital_status' => $marital_status,
             'img_url' => $imageUrl,
             'council_id' => $council_id,
-            'bacenta_id' => $bacenta_id,
+            'bacenta_id' => intval($bacenta_id) === 0 ? null : $bacenta_id,
+            'basonta_id' => intval($basonta_id) === 0 ? null : $bacenta_id,
             'location_id' => $location->id ?? null,
             'user_id' => $user->id ?? null
         ]);
