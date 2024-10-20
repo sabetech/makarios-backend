@@ -9,10 +9,11 @@ use App\Http\Controllers\API\MemberController;
 use App\Http\Controllers\API\CouncilController;
 use App\Http\Controllers\API\BacentaController;
 use App\Http\Controllers\API\BasontaController;
+use App\Http\Controllers\API\UserController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Route::get('/user', function (Request $request) {
+//     return $request->user();
+// })->middleware('auth:sanctum');
 
 Route::controller(RegisterController::class)->group(function(){
     Route::post('register', 'register');
@@ -22,6 +23,10 @@ Route::controller(RegisterController::class)->group(function(){
 
 Route::middleware('auth:sanctum')->group( function () {
     Route::resource('churches', ChurchController::class);
+
+    Route::controller(UserController::class)->group(function(){
+        Route::get('/user', 'getUserViaEmail');
+    });
 
     Route::controller(MemberController::class)->group(function(){
         Route::get('members', 'index');

@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Http\Controllers\API\BaseController as BaseController;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Log;
+use Member;
 
 class RegisterController extends BaseController
 {
@@ -34,12 +35,15 @@ class RegisterController extends BaseController
 
         $input = $request->all();
         $input['password'] = bcrypt($input['password']);
+        $input['email'] = strtolower($input['email']);
         try {
             $user = User::create($input);
 
             if ($input['email'] == "makarioshq.church@gmail.com") {
                 $user->assignRole('Super Admin');
             }
+
+            self::checkIfUserIsMember($user);
 
         }catch (Exception $e) {
             return $this->sendError('User Registration Error:', $e->getMessage());
@@ -82,7 +86,7 @@ class RegisterController extends BaseController
         }
 
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:4096',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,jiff,jif|max:8192',
             'user_id' => 'required'
         ]);
 
@@ -115,4 +119,19 @@ class RegisterController extends BaseController
         $user = Auth::user()->tokens()->delete();
         return $this->sendResponse($user, 'User logout successfully.');
     }
+
+    public static function checkIfUserIsMember($user) {
+
+        $member = Member::where('user_id', $user->id)->first();
+
+        if ($member) {
+
+            $member->update([
+                'user_id' => $user->id
+            ]);
+        }
+
+    }
+
+
 }
