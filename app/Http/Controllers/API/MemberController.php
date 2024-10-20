@@ -40,39 +40,53 @@ class MemberController extends BaseController
 
         $name = $request->get('member_name');
         $date_of_birth = $request->get('date_of_birth');
-        $phone = $request->get('phone');
-        $whatsapp = $request->get('whatsapp');
-        $gender = $request->get('gender');
-        $email = $request->get('email');
-        $address = $request->get('address');
-        $occupation = $request->get('occupation');
-        $marital_status = $request->get('marital_status');
-        $bacenta_id = $request->get('bacenta_id');
-        $basonta_id = $request->get('basonta_id');
+        $phone = $request->get('phone', null);
+        $whatsapp = $request->get('whatsapp', null);
+        $gender = $request->get('gender',  null);
+        $email = $request->get('email', null);
+        $address = $request->get('address', null);
+        $occupation = $request->get('occupation', null);
+        $marital_status = $request->get('marital_status', null);
+        $bacenta_id = $request->get('bacenta_id', null);
+        $basonta_id = $request->get('basonta_id', null);
 
-        $file = $request->file('picture');
+        $file = $request->file('picture', null);
 
-        $result = Cloudinary::upload($file->getRealPath(), [
-            'folder' => 'members',
-            'public_id' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
-            'overwrite' => false,
-            'resource_type' => 'image',
-        ]);
+        if ($request->hasFile('picture')) {
+            $file = $request->file('picture');
+            $result = Cloudinary::upload($file->getRealPath(), [
+                'folder' => 'members',
+                'public_id' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+                'overwrite' => false,
+                'resource_type' => 'image',
+            ]);
 
-        $imageUrl = $result->getSecurePath();
+            $imageUrl = $result->getSecurePath();
+        }else {
+            $imageUrl = $request->get('img_url');
+        }
 
-        $council_id = $user->council->id;
+        $council_id = null;
+        if ($user->council) {
+            $council_id = $user->council->id;
+        }
+
         $location = null;
         if ($request->get('location')) {
+            //TODO:: add additional fields to location to distinguish if location is for a member or for a council or bacenta so I don't get duplicated location rows
+            //TODO:: Just Redesign the location table. It's a good but needs to be redesigned
+            //Holy Spirt, You are my co programmer!
+
 
             $lat_lng = $request->get('location');
             $location = Location::create([
                 'lat_lng' => $lat_lng,
-                'name' => $user->council->name,
-                'address' => $request->get('address'),
+                'name' => $user->council->name ?? "N/A",
+                'address' => $request->get('address', null),
             ]);
         }
 
+        $user = self::checkifMemberIsAlreadyRegistered($email);
 
         $member = Member::create([
             'name' => $name,
@@ -88,9 +102,19 @@ class MemberController extends BaseController
             'council_id' => $council_id,
             'bacenta_id' => $bacenta_id,
             'location_id' => $location->id ?? null,
+            'user_id' => $user->id ?? null
         ]);
 
         return $this->sendResponse($member, 'Member created successfully.');
 
     }
+
+    public function checkifMemberIsAlreadyRegistered($email) {
+
+        $user = User::where('email', $email)->first();
+        return $user;
+
+    }
+
+
 }
