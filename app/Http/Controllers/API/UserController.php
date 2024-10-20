@@ -11,7 +11,7 @@ class UserController extends BaseController
 {
     //
     public function getUserViaEmail(Request $request) {
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', strtolower($request->email))->first();
         if (!$user) {
             return $this->sendError('User not found.');
         }
