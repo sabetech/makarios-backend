@@ -59,7 +59,7 @@ class UserSeeder extends Seeder
                 'name' => $row[1],
                 'email' => $row[2],
                 'img_url' => $row[3],
-                'password' => bcrypt($row[5]), // Hash the password
+                'password' => $row[5],
             ]);
 
             $this->command->info('User ' . $row[1] . ' created successfully.');
