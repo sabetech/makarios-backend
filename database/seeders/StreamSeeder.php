@@ -49,6 +49,5 @@ class StreamSeeder extends Seeder
                 'stream_overseer_id' => $leader->id
             ]);
         }
-
     }
 }
