@@ -68,6 +68,7 @@ class RegisterController extends BaseController
             $user = Auth::user();
             $success['token'] =  $user->createToken('makarios-pwa')->plainTextToken;
             $user->roles;
+            $user->permissions = $user->getPermissionsViaRoles();
             $success['user'] =  $user;
 
             return $this->sendResponse($success, 'User login successfully.');

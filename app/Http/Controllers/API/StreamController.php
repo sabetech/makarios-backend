@@ -10,7 +10,7 @@ class StreamController extends BaseController
 {
     //
     public function index() {
-        $streams = Stream::all();
+        $streams = Stream::with(['overseer', 'church'])->get();
 
         return $this->sendResponse($streams, 'Streams retrieved successfully.');
     }

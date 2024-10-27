@@ -16,7 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->unsignedBigInteger('location_id')->references('id')->on('locations')->nullable();
             $table->unsignedBigInteger('leader_id')->references('id')->on('users')->nullable();
-            $table->unsignedBigInteger('council_id')->references('id')->on('councils');
+            $table->unsignedBigInteger('region_id')->references('id')->on('regions')->nullable();
+            $table->unsignedBigInteger('zone_id')->references('id')->on('zones')->nullable();
             $table->timestamps();
         });
     }

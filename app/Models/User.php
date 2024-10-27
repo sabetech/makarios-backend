@@ -49,14 +49,15 @@ class User extends Authenticatable
         ];
     }
 
+    public function churches() {
+        return $this->hasMany(Church::class, 'leader_id', 'id');
+    }
+
     /**
      * Get Council the User belongs to.
      *
      * @var array<string, string>
      */
-    public function council() {
-        return $this->hasOne(Council::class, 'leader_id', 'id');
-    }
 
     public function bacenta() {
         return $this->hasOne(Bacenta::class, 'leader_id', 'id');

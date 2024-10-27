@@ -20,6 +20,8 @@ class Church extends Model
         'location_id',
     ];
 
-
+    public function streams() {
+        return $this->hasMany(Stream::class, 'church_id', 'id');
+    }
 
 }

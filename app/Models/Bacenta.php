@@ -9,4 +9,9 @@ class Bacenta extends Model
 {
     use HasFactory;
     protected $guarded = ['id'];
+
+    public function zone(){
+        return $this->belongsTo(Zone::class);
+    }
+
 }
