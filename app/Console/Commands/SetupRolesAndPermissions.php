@@ -148,7 +148,7 @@ class SetupRolesAndPermissions extends Command
             'view bacentas',
             'firstOrCreate bacentas',
             'update bacentas',
-            'delete bacenta',
+            'delete bacentas',
         ]);
 
         $regionLead->givePermissionTo([
@@ -165,7 +165,7 @@ class SetupRolesAndPermissions extends Command
             'view bacentas',
             'firstOrCreate bacentas',
             'update bacentas',
-            'delete bacenta',
+            'delete bacentas',
         ]);
 
         $zoneLead->givePermissionTo([
@@ -177,7 +177,7 @@ class SetupRolesAndPermissions extends Command
             'view bacentas',
             'firstOrCreate bacentas',
             'update bacentas',
-            'delete bacenta',
+            'delete bacentas',
         ]);
 
         $bacentaLeader->givePermissionTo([
