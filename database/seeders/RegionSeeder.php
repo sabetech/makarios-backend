@@ -57,7 +57,17 @@ class RegionSeeder extends Seeder
                 'Esaman',
                 'Sekondi Anaafo',
                 'Bakaekyir',
-            ]
+            ],
+            'Immanuel' => [
+                'New Takoradi',
+                'Effiakuma',
+                'I- Adu'
+            ],
+            'Loyalty' => [
+                'Apremdo',
+                'Effiakuma No.1',
+                'Tadisco Down'
+            ],
         ];
 
         $region_experience_service = [
