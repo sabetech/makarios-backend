@@ -28,9 +28,7 @@ return new class extends Migration
             $table->unsignedBigInteger('church_id')->references('id')->on('churches')->nullable();
             $table->unsignedBigInteger('bacenta_id')->references('id')->on('bacentas')->nullable();
             $table->unsignedBigInteger('location_id')->references('id')->on('locations')->nullable();
-            $table->unsignedBigInteger('council_id')->references('id')->on('councils')->nullable();
-            $table->unsignedBigInteger('fellowship_id')->references('id')->on('fellowships')->nullable();
-            $table->unsignedBigInteger('fellowship_leader_id')->references('id')->on('users')->nullable();
+            $table->unsignedBigInteger('region_id')->references('id')->on('regions')->nullable();
             $table->unsignedBigInteger('bacenta_leader_id')->references('id')->on('users')->nullable();
             $table->softDeletes();
             $table->timestamps();

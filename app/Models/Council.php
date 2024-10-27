@@ -14,4 +14,8 @@ class Council extends Model
         return $this->belongsTo(User::class, 'leader_id', 'id');
     }
 
+    public function bacentas() {
+        return $this->hasMany(Bacenta::class, 'council_id', 'id');
+    }
+
 }

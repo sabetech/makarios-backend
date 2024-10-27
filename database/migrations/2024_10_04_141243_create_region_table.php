@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('councils', function (Blueprint $table) {
+        Schema::create('regions', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('description')->nullale()->comment("This can describe what areas this council is focusing on");
+            $table->string('region');
             $table->unsignedBigInteger('leader_id')->references('id')->on('users')->nullable();
+            $table->unsignedBigInteger('assistant_id')->references('id')->on('users')->nullable();
             $table->unsignedBigInteger('stream_id')->references('id')->on('streams');
+
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('councils');
+        Schema::dropIfExists('region');
     }
 };
