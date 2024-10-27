@@ -22,9 +22,7 @@ class UserSeeder extends Seeder
             'sacheampong80@gmail.com',
             'oseibonsunana81@gmail.com',
             'iamsakyi@yahoo.com',
-            'nhyiramint@gmail.com',
             'oduropa1@gmail.com',
-            'atkofi877@gmail.com',
             'oladeleolagoke@gmail.com',
             'wodameamin@gmail.com',
             'anthonyackon40@gmail.com',
@@ -37,7 +35,7 @@ class UserSeeder extends Seeder
             'kwabrokyir@gmail.com',
             'nkotey121@gmail.com',
             'rolandsackey87@gmail.com',
-            'kwabrokyir@gmail.com',
+            'jamesayitevi@gmail.com',
         ];
 
         $bishops = [
