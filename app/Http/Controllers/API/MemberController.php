@@ -22,11 +22,11 @@ class MemberController extends BaseController
         if ($user) {
             if ($user->roles->count() > 0) {
                 if (($user->roles[0]->name) == 'Region Lead' ) {
-                    $members = $members->where('region_id', $user->council->id);
+                    $members = $members->where('region_id', $user->region->id);
                 }
 
                 if (($user->roles[0]->name) == 'Zone Lead') {
-                    $members = $members->where('bacenta_id', $user->bacenta->id);
+                    $members = $members->where('bacenta_id', $user->zone->id); //Fix this for jesus experience
                 }
 
                 if (($user->roles[0]->name) == 'Bacenta Leader') {
@@ -77,9 +77,9 @@ class MemberController extends BaseController
             $imageUrl = $request->get('img_url');
         }
 
-        $council_id = null;
-        if ($user->council) {
-            $council_id = $user->council->id;
+        $region_id = null;
+        if ($user->region) {
+            $region_id = $user->region->id;
         }
 
         $location = null;
@@ -92,7 +92,7 @@ class MemberController extends BaseController
             $lat_lng = $request->get('location');
             $location = Location::create([
                 'lat_lng' => $lat_lng,
-                'name' => $user->council->name ?? "N/A",
+                'name' => $user->region->name ?? "N/A",
                 'address' => $request->get('address', null),
             ]);
         }
@@ -110,7 +110,7 @@ class MemberController extends BaseController
             'occupation' => $occupation,
             'marital_status' => $marital_status,
             'img_url' => $imageUrl,
-            'council_id' => $council_id,
+            'region_id' => $region_id,
             'bacenta_id' => intval($bacenta_id) === 0 ? null : $bacenta_id,
             'basonta_id' => intval($basonta_id) === 0 ? null : $basonta_id,
             'location_id' => $location->id ?? null,
