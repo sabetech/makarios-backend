@@ -17,16 +17,25 @@ class MemberController extends BaseController
 
     public function index(){
         $members = Member::select();
-        if (Auth::user()->roles->count() > 0) {
-            if ((Auth::user()->roles[0]->name) == 'Overseer' ) {
-                $members = $members->where('council_id', Auth::user()->council->id);
-            }
+        $user = Auth::user();
 
-            if ((Auth::user()->roles[0]->name) == 'Bacenta Leader') {
-                $members = $members->where('bacenta_id', Auth::user()->bacenta->id);
-            }
+        if ($user) {
+            if ($user->roles->count() > 0) {
+                if (($user->roles[0]->name) == 'Region Lead' ) {
+                    $members = $members->where('region_id', $user->council->id);
+                }
 
+                if (($user->roles[0]->name) == 'Zone Lead') {
+                    $members = $members->where('bacenta_id', $user->bacenta->id);
+                }
+
+                if (($user->roles[0]->name) == 'Bacenta Leader') {
+                    $members = $members->where('bacenta_id', $user->bacenta->id);
+                }
+            }
         }
+
+
         return $this->sendResponse($members->get(), 'Members retrieved successfully.');
     }
 

@@ -15,15 +15,19 @@ class BacentaController extends BaseController
 
         $user = Auth::user();
         if ($user) {
-            if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Overseer' ) {
-                $bacentas = $bacentas->where('council_id', $user->council->id);
+            if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Bishop' ) {
+                $bacentas = $bacentas->get();
             }
 
-            if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Bacenta Leader') {
-                $bacentas = $bacentas->where('leader_id', $user->id);
+            if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Region Lead') {
+                $bacentas = $bacentas->where('region_id', $user->region->id)->get();
+            }
+
+            if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Zone Lead') {
+                $bacentas = $bacentas->where('zone_id', $user->zone->id)->get();
             }
         }
 
-        return $this->sendResponse($bacentas->get(), 'Bacentas retrieved successfully.');
+        return $this->sendResponse($bacentas, 'Bacentas retrieved successfully.');
     }
 }

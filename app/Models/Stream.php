@@ -17,4 +17,8 @@ class Stream extends Model
     public function church() {
         return $this->belongsTo(Church::class, 'church_id', 'id');
     }
+
+    public function regions() {
+        return $this->belongsTo(Region::class, 'stream_id', 'id');
+    }
 }
