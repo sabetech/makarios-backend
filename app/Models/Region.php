@@ -19,4 +19,9 @@ class Region extends Model
     public function zones(){
         return $this->hasMany(Zone::class);
     }
+
+    public function bacentas(){
+        return $this->hasMany(Bacenta::class);
+    }
+
 }

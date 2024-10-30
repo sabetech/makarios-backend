@@ -53,6 +53,14 @@ class User extends Authenticatable
         return $this->hasMany(Church::class, 'leader_id', 'id');
     }
 
+    public function region() {
+        return $this->hasOne(Region::class, 'leader_id', 'id');
+    }
+
+    public function zone() {
+        return $this->hasOne(Zone::class, 'leader_id', 'id');
+    }
+
     /**
      * Get Council the User belongs to.
      *
