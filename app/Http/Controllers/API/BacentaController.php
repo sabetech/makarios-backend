@@ -15,6 +15,10 @@ class BacentaController extends BaseController
 
         $user = Auth::user();
         if ($user) {
+            if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Super Admin' ) {
+                $bacentas = $bacentas->get();
+            }
+
             if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Bishop' ) {
                 $bacentas = $bacentas->get();
             }
