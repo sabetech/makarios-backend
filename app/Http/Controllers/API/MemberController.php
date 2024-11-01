@@ -35,7 +35,6 @@ class MemberController extends BaseController
             }
         }
 
-
         return $this->sendResponse($members->get(), 'Members retrieved successfully.');
     }
 
