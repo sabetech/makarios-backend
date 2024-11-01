@@ -88,7 +88,7 @@ class UserController extends BaseController
             case "Region Lead":
                 $dashboardValues[] = [
                     "name" => "Regions",
-                    "count" => $user->region->count()
+                    "count" => $user->region()->count()
                 ];
 
                 $dashboardValues[] = [
