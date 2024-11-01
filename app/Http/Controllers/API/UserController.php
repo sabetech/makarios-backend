@@ -6,6 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\User;
+use App\Models\Church;
+use App\Models\Stream;
+use App\Models\Region;
+use App\Models\Bacenta;
+use App\Models\Zone;
+use Log;
 
 class UserController extends BaseController
 {
@@ -46,6 +52,9 @@ class UserController extends BaseController
         $user = $request->user();
         //Get Role
         $role = $user->getRoleNames()[0];
+
+        Log::info("User: " . $user->name . " Role: " . $role);
+
         $dashboardValues = [];
         switch ($role) {
             case "Super Admin":
@@ -53,26 +62,64 @@ class UserController extends BaseController
             case "Bishop":
                 $dashboardValues[] = [
                     "name" => "Churches",
-                    "count" => $user->churches->count()
+                    "count" => Church::count()
                 ];
 
                 $dashboardValues[] = [
                     "name" => "Streams",
-                    "count" => $user->streams->count()
+                    "count" => Stream::count()
                 ];
 
-
-            case "Overseer":
                 $dashboardValues[] = [
-                    "name" => "Council",
-
+                    "name" => "Regions",
+                    "count" => Region::count()
                 ];
 
-            case "Bacenta Leader":
+                $dashboardValues[] = [
+                    "name" => "Zones",
+                    "count" => Zone::count()
+                ];
 
+                $dashboardValues[] = [
+                    "name" => "Bacentas",
+                    "count" => Bacenta::count()
+                ];
                 break;
-            case "Fellowship Leader":
+            case "Region Lead":
+                $dashboardValues[] = [
+                    "name" => "Regions",
+                    "count" => $user->region->count()
+                ];
+
+                $dashboardValues[] = [
+                    "name" => "Zones",
+                    "count" => Zone::where('region_id', $user->region->id)->count()
+                ];
+
+                $dashboardValues[] = [
+                    "name" => "Bacentas",
+                    "count" => Bacenta::where('region_id', $user->region->id)->count()
+                ];
                 break;
+
+            case "Zone Lead":
+                $dashboardValues[] = [
+                    "name" => "Zones",
+                    "count" => Zone::where('region_id', $user->region->id)->count()
+                ];
+
+                $dashboardValues[] = [
+                    "name" => "Bacentas",
+                    "count" => Bacenta::where('region_id', $user->region->id)->count()
+                ];
+                break;
+            case "Bacenta Leader":
+                $dashboardValues[] = [
+                    "name" => "Bacentas",
+                    "count" => Bacenta::where('region_id', $user->region->id)->count()
+                ];
+                break;
+
             default:
 
         }

@@ -26,6 +26,7 @@ Route::middleware('auth:sanctum')->group( function () {
 
     Route::controller(UserController::class)->group(function(){
         Route::get('/user', 'getUserViaEmail');
+        Route::get('/dashboard-summary', 'getDashboardSummary');
     });
 
     Route::controller(MemberController::class)->group(function(){
