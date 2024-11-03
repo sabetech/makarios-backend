@@ -14,24 +14,23 @@ class RegionController extends BaseController
     public function index(Request $request) {
         $user = Auth::user();
         $regions = Region::select();
-        if ($user) {
-            if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Super Admin' ) {
-                $regions =$regions->get();
-            }
 
-            if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Bishop' ) {
-                $regions = $regions->where('church_id', $user->church->id)->get();
-            }
-
-            if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Region Lead') {
-                $regions = $regions->where('id', $user->region->id)->get();
-            }
-
-
-
-
+        if (!$user) {
+            return $this->sendError('Unauthorised.', ['error'=>'User not found'], 401);
         }
 
-        return $this->sendResponse($regions, 'Regions retrieved successfully.');
+        if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Super Admin' ) {
+            $regions =$regions->get();
+        }
+
+        if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Bishop' ) {
+            $regions =$regions->get(); //Refactor this to take into account the church
+        }
+
+        if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Region Lead') {
+            $regions = $regions->where('id', $user->region->id)->get();
+        }
+
+        return $this->sendResponse($regions->get(), 'Regions retrieved successfully.');
     }
 }

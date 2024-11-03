@@ -10,6 +10,7 @@ use App\Http\Controllers\API\CouncilController;
 use App\Http\Controllers\API\BacentaController;
 use App\Http\Controllers\API\BasontaController;
 use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\RegionController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -32,6 +33,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::controller(MemberController::class)->group(function(){
         Route::get('members', 'index');
         Route::post('members', 'create');
+    });
+
+    Route::controller(RegionController::class)->group(function(){
+        Route::get('regions', 'index');
     });
 
     Route::controller(StreamController::class)->group(function(){
