@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;;
 
 use Illuminate\Http\Request;
 use App\Models\Region;
@@ -13,7 +13,7 @@ class RegionController extends BaseController
     //
     public function index(Request $request) {
         $user = Auth::user();
-        $regions = Region::select();
+        $regions = Region::with(['leader', 'stream'])->select();
 
         if (!$user) {
             return $this->sendError('Unauthorised.', ['error'=>'User not found'], 401);
@@ -31,6 +31,6 @@ class RegionController extends BaseController
             $regions = $regions->where('id', $user->region->id)->get();
         }
 
-        return $this->sendResponse($regions->get(), 'Regions retrieved successfully.');
+        return $this->sendResponse($regions, 'Regions retrieved successfully.');
     }
 }

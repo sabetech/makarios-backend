@@ -16,6 +16,14 @@ class Region extends Model
         'stream_id',
     ];
 
+    public function leader() {
+        return $this->belongsTo(User::class, 'leader_id', 'id');
+    }
+
+    public function stream() {
+        return $this->belongsTo(Stream::class, 'stream_id', 'id');
+    }
+
     public function zones(){
         return $this->hasMany(Zone::class);
     }

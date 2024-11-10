@@ -185,6 +185,7 @@ class SetupRolesAndPermissions extends Command
             'firstOrCreate bacentas',
             'update bacentas',
             'delete bacentas',
+
         ]);
 
 
