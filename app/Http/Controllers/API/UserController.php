@@ -116,7 +116,7 @@ class UserController extends BaseController
             case "Bacenta Leader":
                 $dashboardValues[] = [
                     "name" => "Bacentas",
-                    "count" => Bacenta::where('region_id', $user->region->id)->count()
+                    "count" => Bacenta::where('id', $user->bacenta->id)->count()
                 ];
                 break;
 
