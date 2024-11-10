@@ -30,6 +30,10 @@ class BacentaController extends BaseController
             if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Zone Lead') {
                 $bacentas = $bacentas->where('zone_id', $user->zone->id)->get();
             }
+
+            if (($user->roles->count() > 0) && ($user->roles[0]->name) == 'Bacenta Leader') {
+                $bacentas = $bacentas->where('id', $user->bacenta->id)->get();
+            }
         }
 
         return $this->sendResponse($bacentas, 'Bacentas retrieved successfully.');
