@@ -14,4 +14,12 @@ class Bacenta extends Model
         return $this->belongsTo(Zone::class);
     }
 
+    public function leader(){
+        return $this->belongsTo(User::class, 'leader_id');
+    }
+
+    public function members(){
+        return $this->hasMany(Member::class);
+    }
+
 }

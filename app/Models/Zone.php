@@ -29,4 +29,9 @@ class Zone extends Model
         return $this->hasMany(Bacenta::class, 'zone_id');
     }
 
+    public function members() {
+        $bacentaIds = $this->bacentas()->pluck('id')->toArray();
+        return Member::whereIn('bacenta_id', $bacentaIds)->get();
+    }
+
 }
