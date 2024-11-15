@@ -37,6 +37,7 @@ Route::middleware('auth:sanctum')->group( function () {
 
     Route::controller(RegionController::class)->group(function(){
         Route::get('regions', 'index');
+        Route::get('regions/{id}', 'show');
     });
 
     Route::controller(StreamController::class)->group(function(){
