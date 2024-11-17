@@ -32,4 +32,9 @@ class Region extends Model
         return $this->hasMany(Bacenta::class);
     }
 
+    public function members(){
+        $bacentaIds = $this->bacentas()->pluck('id')->toArray();
+        return Member::whereIn('bacenta_id', $bacentaIds)->get();
+    }
+
 }

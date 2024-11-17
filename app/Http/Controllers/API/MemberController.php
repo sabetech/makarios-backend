@@ -44,9 +44,9 @@ class MemberController extends BaseController
 
         $user = Auth::user();
 
-        Log::info($request->all());
+        Log::info("member info", [$request->all()]);
 
-        Log::info("user?", ["User" => $request->user()]);
+        Log::info("User Adding Member:", ["User" => $request->user()]);
 
         $name = $request->get('member_name');
         $date_of_birth = $request->get('date_of_birth');

@@ -33,4 +33,17 @@ class RegionController extends BaseController
 
         return $this->sendResponse($regions, 'Regions retrieved successfully.');
     }
+
+    public function show($id) {
+        $region = Region::with(['leader', 'stream', 'zones'])->find($id);
+
+        if (is_null($region)) {
+            return $this->sendError('Region not found.');
+        }
+
+        $region->members = $region->members();
+
+        return $this->sendResponse($region, 'Region retrieved successfully.');
+    }
+
 }
