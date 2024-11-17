@@ -13,7 +13,7 @@ class RegionController extends BaseController
     //
     public function index(Request $request) {
         $user = Auth::user();
-        $regions = Region::with(['leader', 'stream'])->select();
+        $regions = Region::with(['leader.roles', 'stream'])->select();
 
         if (!$user) {
             return $this->sendError('Unauthorised.', ['error'=>'User not found'], 401);
