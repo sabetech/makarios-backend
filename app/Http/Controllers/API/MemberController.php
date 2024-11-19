@@ -15,9 +15,15 @@ use Illuminate\Support\Facades\Auth;
 class MemberController extends BaseController
 {
 
-    public function index(){
+    public function index(Request $request){
         $members = Member::select();
         $user = Auth::user();
+
+        $filter = $request->get('stream_id', null);
+
+        if ($filter) {
+            $members = $members->where('id', $filter);
+        }
 
         if ($user) {
             if ($user->roles->count() > 0) {

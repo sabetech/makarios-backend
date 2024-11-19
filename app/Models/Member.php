@@ -13,4 +13,13 @@ class Member extends Model
     public function location() {
         return $this->hasOne(Location::class, 'location_id', 'id');
     }
+
+    public function bacenta() {
+        return $this->belongsTo(Bacenta::class, 'bacenta_id', 'id');
+    }
+
+    public function region() {
+        return $this->belongsTo(Region::class, 'region_id', 'id');
+    }
+
 }

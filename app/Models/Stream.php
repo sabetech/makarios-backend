@@ -21,4 +21,8 @@ class Stream extends Model
     public function regions() {
         return $this->belongsTo(Region::class, 'stream_id', 'id');
     }
+
+    public function members() {
+        return $this->hasMany(Member::class, 'stream_id', 'id');
+    }
 }
