@@ -19,10 +19,21 @@ class MemberController extends BaseController
         $members = Member::select();
         $user = Auth::user();
 
-        $filter = $request->get('stream_id', null);
+        $streamId = $request->get('stream_id', null);
+        $regionId = $request->get('region_id', null);
+        $bacentaId = $request->get('bacenta_id', null);
+        // $churchId = $request->get('church_id', null); TODO:: Include this if we start rolling out for multiple churches
 
-        if ($filter) {
-            $members = $members->where('id', $filter);
+        if ($streamId) {
+            $members = $members->where('stream_id', $streamId);
+        }
+
+        if ($regionId) {
+            $members = $members->where('region_id', $regionId);
+        }
+
+        if ($bacentaId) {
+            $members = $members->where('bacenta_id', $bacentaId);
         }
 
         if ($user) {
