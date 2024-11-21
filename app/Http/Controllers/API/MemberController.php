@@ -93,9 +93,14 @@ class MemberController extends BaseController
             $imageUrl = $request->get('img_url');
         }
 
+        $bacenta = Bacenta::find($bacenta_id);
         $region_id = null;
-        if ($user->region) {
-            $region_id = $user->region->id;
+        $stream_id = null;
+        if ($bacenta) {
+            $region = $bacenta->region;
+            $region_id = $region->id;
+            $stream_id = $region->stream->id;
+
         }
 
         $location = null;
@@ -129,6 +134,7 @@ class MemberController extends BaseController
             'region_id' => $region_id,
             'bacenta_id' => intval($bacenta_id) === 0 ? null : $bacenta_id,
             'basonta_id' => intval($basonta_id) === 0 ? null : $basonta_id,
+            'stream_id' => $stream_id,
             'location_id' => $location->id ?? null,
             'user_id' => $user->id ?? null
         ]);
