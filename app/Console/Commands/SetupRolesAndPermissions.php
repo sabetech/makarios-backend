@@ -178,6 +178,11 @@ class SetupRolesAndPermissions extends Command
             'firstOrCreate bacentas',
             'update bacentas',
             'delete bacentas',
+
+            'view members',
+            'firstOrCreate members',
+            'update members',
+            'delete members',
         ]);
 
         $bacentaLeader->givePermissionTo([
