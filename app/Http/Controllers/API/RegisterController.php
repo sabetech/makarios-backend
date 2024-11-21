@@ -11,7 +11,7 @@ use App\Models\User;
 use App\Http\Controllers\API\BaseController as BaseController;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Log;
-use Member;
+use App\Models\Member;
 
 class RegisterController extends BaseController
 {

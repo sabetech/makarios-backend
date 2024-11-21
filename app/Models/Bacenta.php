@@ -22,4 +22,8 @@ class Bacenta extends Model
         return $this->hasMany(Member::class);
     }
 
+    public function region() {
+        return $this->belongsTo(Region::class, 'region_id', 'id');
+    }
+
 }
