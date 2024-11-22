@@ -51,7 +51,11 @@ class UserController extends BaseController
 
         $user = $request->user();
         //Get Role
-        $role = $user->getRoleNames()[0];
+        $roles = $user->getRoleNames();
+        $role = "unassigned";
+        if ($roles->count() > 0) {
+            $role = $roles[0];
+        }
 
         Log::info("User: " . $user->name . " Role: " . $role);
 
