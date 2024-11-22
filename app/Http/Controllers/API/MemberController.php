@@ -44,7 +44,8 @@ class MemberController extends BaseController
                 }
 
                 if (($user->roles[0]->name) == 'Zone Lead') {
-                    $members = $members->where('bacenta_id', $user->zone->id); //Fix this for jesus experience
+                    $bacentaIds = $user->zone->bacentas()->pluck('id')->toArray();
+                    $members = $members->whereIn('bacenta_id', $bacentaIds);
                 }
 
                 if (($user->roles[0]->name) == 'Bacenta Leader') {
