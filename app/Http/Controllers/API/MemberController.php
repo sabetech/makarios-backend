@@ -11,6 +11,7 @@ use App\Models\Location;
 use App\Models\User;
 use Log;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Bacenta;
 
 class MemberController extends BaseController
 {
