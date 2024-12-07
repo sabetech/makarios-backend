@@ -20,6 +20,10 @@ class Zone extends Model
         return $this->belongsTo(Region::class);
     }
 
+    public function stream() {
+        return $this->belongsTo(Stream::class);
+    }
+
     public function leader()
     {
         return $this->belongsTo(User::class, 'leader_id');
