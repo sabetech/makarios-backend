@@ -6,6 +6,7 @@ use App\Http\Controllers\API\BaseController as BaseController;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Zone;
+use App\Models\Stream;
 use Log;
 
 
@@ -21,7 +22,7 @@ class ZoneController extends BaseController
             $role = $roles[0];
         }
 
-        $zones = Zone::select();
+        $zones = Zone::with(['region', 'stream', 'leader'])->select();
 
         Log::info("User: " . $user->name . " Role: " . $role . " Getting Zones");
 
@@ -32,14 +33,13 @@ class ZoneController extends BaseController
             Log::info("Stream ID: " . $streamId);
             $stream = Stream::find($streamId);
             if ($stream) {
-                $zones = $stream->zones(); //Need to test this very well. can be buggy!
+                $zones = $stream->zones()->with(['region', 'stream', 'leader']); //Need to test this very well. can be buggy!
             }
         }
 
         if ($regionId) {
             $zones = $zones->where('region_id', $regionId);
         }
-
 
         switch ($role) {
             case "Super Admin":
