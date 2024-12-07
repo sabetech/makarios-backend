@@ -21,7 +21,7 @@ class Zone extends Model
     }
 
     public function stream() {
-        return $this->belongsTo(Stream::class);
+        return $this->hasOneThrough(Stream::class, Region::class, 'id', 'id', 'region_id', 'stream_id');
     }
 
     public function leader()
