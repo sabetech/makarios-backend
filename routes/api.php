@@ -6,7 +6,7 @@ use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\ChurchController;
 use App\Http\Controllers\API\StreamController;
 use App\Http\Controllers\API\MemberController;
-use App\Http\Controllers\API\CouncilController;
+use App\Http\Controllers\API\ZoneController;
 use App\Http\Controllers\API\BacentaController;
 use App\Http\Controllers\API\BasontaController;
 use App\Http\Controllers\API\UserController;
@@ -45,9 +45,9 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::get('stream/{stream}', 'show');
     });
 
-    Route::controller(CouncilController::class)->group(function(){
-        Route::get('councils', 'index');
-        Route::get('council/{council}', 'show');
+    Route::controller(ZoneController::class)->group(function(){
+        Route::get('zones', 'index');
+        Route::get('zone/{zone}', 'show');
     });
 
     Route::controller(BacentaController::class)->group(function () {

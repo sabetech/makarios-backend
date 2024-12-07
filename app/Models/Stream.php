@@ -25,4 +25,16 @@ class Stream extends Model
     public function members() {
         return $this->hasMany(Member::class, 'stream_id', 'id');
     }
+
+    public function zones()
+    {
+        return $this->hasManyThrough(
+            Zone::class,
+            Region::class,
+            'stream_id',
+            'region_id',
+            'id',
+            'id'
+        );
+    }
 }

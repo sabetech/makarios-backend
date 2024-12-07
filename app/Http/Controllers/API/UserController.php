@@ -11,6 +11,7 @@ use App\Models\Stream;
 use App\Models\Region;
 use App\Models\Bacenta;
 use App\Models\Zone;
+use App\Models\Member;
 use Log;
 
 class UserController extends BaseController
@@ -88,7 +89,13 @@ class UserController extends BaseController
                     "name" => "Bacentas",
                     "count" => Bacenta::count()
                 ];
+
+                $dashboardValues[] = [
+                    "name" => "Members",
+                    "count" => Member::count()
+                ];
                 break;
+
             case "Region Lead":
                 $dashboardValues[] = [
                     "name" => "Regions",
@@ -104,6 +111,12 @@ class UserController extends BaseController
                     "name" => "Bacentas",
                     "count" => Bacenta::where('region_id', $user->region->id)->count()
                 ];
+
+                $dashboardValues[] = [
+                    "name" => "Members",
+                    "count" =>  $user->region->members()->count()
+                ];
+
                 break;
 
             case "Zone Lead":
@@ -116,11 +129,20 @@ class UserController extends BaseController
                     "name" => "Bacentas",
                     "count" => $user->zone->bacentas()->count()
                 ];
+
+                $dashboardValues[] = [
+                    "name" => "Members",
+                    "count" => $user->zone->members()->count()
+                ];
                 break;
             case "Bacenta Leader":
                 $dashboardValues[] = [
                     "name" => "Bacentas",
                     "count" => Bacenta::where('id', $user->bacenta->id)->count()
+                ];
+                $dashboardValues[] = [
+                    "name" => "Members",
+                    "count" => $user->members->count()
                 ];
                 break;
 
