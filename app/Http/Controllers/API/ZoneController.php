@@ -70,4 +70,14 @@ class ZoneController extends BaseController
         return $this->sendError('You are not authorized to view this page.');
 
     }
+
+    public function show($id) {
+        $zone = Zone::with(['region', 'stream', 'leader.roles', 'bacentas'])->find($id);
+
+        if (is_null($zone)) {
+            return $this->sendError('Zone not found.');
+        }
+        $zone->members = $zone->members();
+        return $this->sendResponse($zone, 'Zone retrieved successfully.');
+    }
 }

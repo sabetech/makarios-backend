@@ -15,6 +15,12 @@ class RegionController extends BaseController
         $user = Auth::user();
         $regions = Region::with(['leader', 'stream'])->select();
 
+        $streamId = $request->get('stream_id', null);
+
+        if ($streamId) {
+            $regions = $regions->where('stream_id', $streamId);
+        }
+
         if (!$user) {
             return $this->sendError('Unauthorised.', ['error'=>'User not found'], 401);
         }
