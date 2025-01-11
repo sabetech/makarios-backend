@@ -26,4 +26,8 @@ class Bacenta extends Model
         return $this->belongsTo(Region::class, 'region_id', 'id');
     }
 
+    public function services(){
+        return $this->hasMany(Service::class, 'bacenta_id', 'id');
+    }
+
 }

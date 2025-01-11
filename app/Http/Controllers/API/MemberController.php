@@ -6,10 +6,9 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use App\Models\Member;
-use App\Models\Church;
 use App\Models\Location;
 use App\Models\User;
-use Log;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Bacenta;
 

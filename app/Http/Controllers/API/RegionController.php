@@ -4,7 +4,7 @@ namespace App\Http\Controllers\API;;
 
 use Illuminate\Http\Request;
 use App\Models\Region;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\API\BaseController as BaseController;
 
