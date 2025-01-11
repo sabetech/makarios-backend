@@ -37,4 +37,8 @@ class Stream extends Model
             'id'
         );
     }
+
+    public function services(){
+        return $this->hasMany(Service::class, 'stream_id', 'id');
+    }
 }

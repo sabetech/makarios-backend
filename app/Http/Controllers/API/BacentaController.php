@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\Bacenta;
-use Auth;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 
 class BacentaController extends BaseController
 {
     //
     public function index() {
-        $bacentas = Bacenta::select();
+        $bacentas = Bacenta::with('region')->select();
 
         $user = Auth::user();
         if ($user) {

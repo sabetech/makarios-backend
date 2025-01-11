@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Zone;
 use App\Models\Stream;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 
 class ZoneController extends BaseController

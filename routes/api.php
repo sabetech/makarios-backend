@@ -11,6 +11,7 @@ use App\Http\Controllers\API\BacentaController;
 use App\Http\Controllers\API\BasontaController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\RegionController;
+use App\Http\Controllers\API\ServiceController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -57,6 +58,12 @@ Route::middleware('auth:sanctum')->group( function () {
 
     Route::controller(BasontaController::class)->group(function () {
         Route::get('basontas', 'index');
+    });
+
+    Route::controller(ServiceController::class)->group(function () {
+        Route::get('service/types', 'serviceTypes');
+        Route::post('service', 'create');
+        Route::get('services', 'index');
     });
 
     Route::post('logout', [RegisterController::class, 'logout']);

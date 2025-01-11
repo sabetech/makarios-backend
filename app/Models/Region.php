@@ -37,4 +37,8 @@ class Region extends Model
         return Member::whereIn('bacenta_id', $bacentaIds)->get();
     }
 
+    public function services(){
+        return $this->hasMany(Service::class, 'region_id', 'id');
+    }
+
 }
