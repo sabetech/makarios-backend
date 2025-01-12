@@ -8,6 +8,7 @@ use App\Models\Stream;
 use App\Models\Bacenta;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\Zone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
@@ -90,6 +91,19 @@ class ServiceController extends BaseController
                 $service->region_id = $bacenta->region->id;
                 $service->stream_id = $bacenta->region->stream->id;
                 $service->church_id = $bacenta->region->stream->church->id;
+            }else{
+                return $this->sendError("Bacenta not found");
+            }
+        }
+
+        if (ServiceType::find($serviceType)->service_type == 'Joint Bacenta Service') {
+            $service->zone_id = $request->get('zone_id');
+            $zone = Zone::find($service->zone_id);
+            if ($zone) {
+                $service->zone_id = $zone->id;
+                $service->region_id = $zone->region->id;
+                $service->stream_id = $zone->region->stream->id;
+                $service->church_id = $zone->region->stream->church->id;
             }else{
                 return $this->sendError("Bacenta not found");
             }
