@@ -6,6 +6,7 @@ use App\Models\ServiceType;
 use App\Models\Service;
 use App\Models\Stream;
 use App\Models\Bacenta;
+use App\Models\Region;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Zone;
@@ -92,6 +93,7 @@ class ServiceController extends BaseController
                 $service->stream_id = $bacenta->region->stream->id;
                 $service->church_id = $bacenta->region->stream->church->id;
             }else{
+                Log::info("[SericeController:create] Bacenta not found");
                 return $this->sendError("Bacenta not found");
             }
         }
@@ -105,44 +107,37 @@ class ServiceController extends BaseController
                 $service->stream_id = $zone->region->stream->id;
                 $service->church_id = $zone->region->stream->church->id;
             }else{
-                return $this->sendError("Bacenta not found");
+                Log::info("[SericeController:create] Zone not found");
+                return $this->sendError("Zone not found");
             }
         }
 
-        if ($user->roles[0]->name === 'Zone Lead') {
-            if ($zone = $user->zone) {
-                $service->zone_id = $zone->id;
-                $service->region_id = $zone->region->id;
-                $service->stream_id = $zone->region->stream->id;
-                $service->church_id = $zone->region->stream->church->id;
-            }else{
-                return $this->sendError("Zone not Found");
-            }
-        }
-
-        if ($user->roles[0]->name === 'Region Lead') {
-            if ($region = $user->region) {
-                $service->region_id = $region->id;
+        if (ServiceType::find($serviceType)->service_type == 'Joint Zonal Service') {
+            $service->region_id = $request->get('region_id');
+            if ($region = Region::find($service->region_id)) {
                 $service->stream_id = $region->stream->id;
                 $service->church_id = $region->stream->church->id;
             }else{
+                Log::info("[SericeController:create] Region not found");
                 return $this->sendError('Region not found');
             }
+
         }
 
-        if ($user->roles[0]->name === 'Stream Lead') {
-            if ($stream = $user->stream) {
-                $service->stream_id = $stream->id;
-                $service->church_id = $stream->church->id;
-            }else{
-                return $this->sendError('Stream not found');
-            }
+        if (ServiceType::find($serviceType)->service_type == 'Stream Service') {
+            $service->stream_id = $request->get('stream_id');
+            if ($stream = Stream::find($service->stream_id)) {
+                    $service->church_id = $stream->church->id;
+                }else{
+                    Log::info("[SericeController:create] Stream not found");
+                    return $this->sendError('Stream not found');
+                }
         }
 
         $service->church_id = 1; //FIX THIS ASAP ... THIS IS NOT RIGHT
 
         $service->offering = $offering;
-        $service->foreign_currency = $foreignCurrency == 'undefined' ? null : $foreignCurrency;
+        $service->foreign_currency = $foreignCurrency === 'undefined' ? null : $foreignCurrency;
         $service->treasurers = $treasurers;
         $service->attendance = $attendance;
         $service->treasurer_photo = $treasurers_img_url;
@@ -158,14 +153,20 @@ class ServiceController extends BaseController
         $user = Auth::user(); //This is the user that is logged in and use for data filtering
 
         $streamId = $request->get('stream_id', null);
+
+        Log::info("Stream ID: " . $streamId);
+
         if ($streamId && $streamId != 0) { //This is either a Sunday Service, Jesus XP or 1st Service Sunday
             $stream = Stream::find($streamId);
+
             if ($stream) {
                 $streamServiceType = ServiceType::where('service_type', 'Stream Service')->first();
+                Log::info(["Stream Service Type: " => $streamServiceType->id]);
                 $services = $stream->services()
-                                ->where('stream_id', $streamId)
-                                ->where('service_type_id', $streamServiceType->service_type)
+                                ->where('service_type_id', $streamServiceType->id)
                                 ->with(['serviceType', 'church', 'bacenta', 'zone', 'region'])->get();
+
+                Log::info(["Services Stream::"=> $services]);
                 return $this->sendResponse($services, 'Services retrieved successfully.');
             }
         }
