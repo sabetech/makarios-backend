@@ -87,6 +87,10 @@ class MemberController extends BaseController
                 'public_id' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
                 'overwrite' => false,
                 'resource_type' => 'image',
+                'transformation' => [
+                    'quality' => 'auto:eco',
+                    'fetch_format' => 'auto',
+                ]
             ]);
 
             $imageUrl = $result->getSecurePath();
