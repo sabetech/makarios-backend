@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\ArrivalController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\RegisterController;
@@ -12,6 +13,8 @@ use App\Http\Controllers\API\BasontaController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\RegionController;
 use App\Http\Controllers\API\ServiceController;
+use App\Models\Arrival;
+use Illuminate\Support\Arr;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -64,6 +67,11 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::get('service/types', 'serviceTypes');
         Route::post('service', 'create');
         Route::get('services', 'index');
+    });
+
+    Route::controller(ArrivalController::class)->group(function () {
+        Route::get('arrivals', 'index');
+        Route::post('arrivals', 'create');
     });
 
     Route::post('logout', [RegisterController::class, 'logout']);
