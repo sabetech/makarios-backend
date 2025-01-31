@@ -10,6 +10,15 @@ use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ArrivalController extends BaseController
 {
+
+    public function index(Request $request) {
+
+        $bacenta_id = $request->get('bacenta_id');
+
+        $arrivals = Arrival::where('bacenta_id', $bacenta_id)->get();
+        return $this->sendResponse($arrivals, 'Arrivals retrieved successfully.');
+    }
+
     //
     public function create(Request $request) {
         $date = $request->get('date');
