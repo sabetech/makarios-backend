@@ -63,7 +63,7 @@ class User extends Authenticatable
             return $this->hasOne(Stream::class, 'stream_admin_id', 'id');
         }
 
-        return null;
+        return $this->hasOne(Stream::class, 'stream_overseer_id', 'id');
 
     }
 
