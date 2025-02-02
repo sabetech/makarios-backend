@@ -54,7 +54,17 @@ class User extends Authenticatable
     }
 
     public function stream() {
-        return $this->hasOne(Stream::class, 'stream_overseer_id', 'id');
+
+        if ($this->roles[0] == 'Stream Lead') {
+            return $this->hasOne(Stream::class, 'stream_overseer_id', 'id');
+        }
+
+        if ($this->roles[0] == 'Stream Admin') {
+            return $this->hasOne(Stream::class, 'stream_admin_id', 'id');
+        }
+
+        return null
+
     }
 
     public function region() {
