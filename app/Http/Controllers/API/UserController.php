@@ -141,7 +141,7 @@ class UserController extends BaseController
                 ];
                 $dashboardValues[] = [
                     "name" => "Members",
-                    "count" => $user->members->count()
+                    "count" => ($user->bacenta) ? $user->bacenta->members()->count() : 0
                 ];
                 break;
 

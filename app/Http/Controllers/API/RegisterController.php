@@ -10,7 +10,7 @@ use App\Http\Controllers\API\BaseController as BaseController;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Exception;
 use App\Models\Member;
-use \Illuminate\Http\Response as JsonResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 
 class RegisterController extends BaseController
