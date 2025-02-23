@@ -41,7 +41,7 @@ class RegionController extends BaseController
     }
 
     public function show($id) {
-        $region = Region::with(['leader.roles', 'stream', 'zones', 'bacentas'])->find($id);
+        $region = Region::with(['leader.roles', 'stream', 'zones', 'bacentas.leader'])->find($id);
 
         if (is_null($region)) {
             return $this->sendError('Region not found.');

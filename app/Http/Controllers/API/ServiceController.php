@@ -13,6 +13,7 @@ use App\Models\Zone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Support\Facades\DB;
 
 class ServiceController extends BaseController
 {
@@ -201,6 +202,70 @@ class ServiceController extends BaseController
         }
 
         return $this->sendError('You are not authorized to view this page.');
+
+    }
+
+    public function calculateServiceAverages() {
+        //include an optional date range calculation
+
+        $user = Auth::user(); //This is the user that is logged in and use for data filtering
+
+        if (!$user) {
+            return $this->sendError('Unauthorised.', ['error'=>'User not found'], 401);
+        }
+
+        $serviceAverage = 0;
+
+        if ($user->roles->count() > 0 && $user->roles[0]->name == 'Super Admin') {
+            $serviceAverage = Service::select([
+                DB::raw('AVG(offering) as avgOffering'),
+                DB::raw('AVG(attendance) as avgAttn')
+            ])->first();
+        }
+
+        if ($user->roles->count() > 0 &&
+            $user->roles[0]->name == 'Stream Admin' ||
+            $user->roles[0]->name == 'Stream Lead'
+            ){
+                $serviceAverage = $user->stream->services()->select([
+                    DB::raw('AVG(offering) as avgOffering'),
+                    DB::raw('AVG(attendance) as avgAttn')
+                ])->first();
+            }
+
+        if ($user->roles->count() > 0 &&
+            $user->roles[0]->name == 'Region Admin' ||
+            $user->roles[0]->name == 'Region Lead'
+            ){
+                $serviceAverage = $user->region->services()->select([
+                    DB::raw('AVG(offering) as avgOffering'),
+                    DB::raw('AVG(attendance) as avgAttn')
+                ])->first();
+            }
+
+        if ($user->roles->count() > 0 &&
+            $user->roles[0]->name == 'Zone Admin' ||
+            $user->roles[0]->name == 'Zone Lead'
+            ){
+                $serviceAverage = $user->zone->services()->select([
+                    DB::raw('AVG(offering) as avgOffering'),
+                    DB::raw('AVG(attendance) as avgAttn')
+                ])->first();
+            }
+
+        if ($user->roles->count() > 0 &&
+            $user->roles[0]->name == 'Bacenta Admin' ||
+            $user->roles[0]->name == 'Bacenta Leader'
+            ){
+                $serviceAverage = $user->bacenta->services()->select([
+                    DB::raw('AVG(offering) as avgOffering'),
+                    DB::raw('AVG(attendance) as avgAttn')
+                ])->first();
+            }
+
+        Log::info("Service Average: ", [$serviceAverage]);
+
+        return $this->sendResponse($serviceAverage, 'Average Service Attendance retrieved successfully.');
 
     }
 

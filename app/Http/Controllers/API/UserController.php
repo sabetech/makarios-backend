@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\User;
@@ -12,7 +11,7 @@ use App\Models\Region;
 use App\Models\Bacenta;
 use App\Models\Zone;
 use App\Models\Member;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends BaseController
 {

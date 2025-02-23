@@ -16,7 +16,7 @@ class MemberController extends BaseController
 {
 
     public function index(Request $request){
-        $members = Member::select();
+        $members = Member::with(['bacenta', 'region', 'zone', 'stream'])->select();
         $user = Auth::user();
 
         $streamId = $request->get('stream_id', null);
