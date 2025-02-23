@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('councils', function (Blueprint $table) {
+        Schema::create('service_days', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->unsignedBigInteger('stream_id')->references('id')->on('streams');
+            $table->unsignedBigInteger('bacenta_id')->references('id')->on('bacentas');
+            $table->enum('service_day', ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
+            $table->time('start_time');
+            $table->time('end_time');
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('councils');
+        Schema::dropIfExists('service_days');
     }
 };
