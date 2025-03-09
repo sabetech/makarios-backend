@@ -67,6 +67,8 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::get('service/types', 'serviceTypes');
         Route::post('service', 'create');
         Route::get('services', 'index');
+        Route::get('service/averages', 'calculateServiceAverages');
+
     });
 
     Route::controller(ArrivalController::class)->group(function () {

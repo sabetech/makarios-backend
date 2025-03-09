@@ -10,7 +10,7 @@ class BacentaController extends BaseController
 {
     //
     public function index() {
-        $bacentas = Bacenta::with('region')->select();
+        $bacentas = Bacenta::with(['region', 'region.stream', 'leader', 'members'])->select();
 
         $user = Auth::user();
         if ($user) {

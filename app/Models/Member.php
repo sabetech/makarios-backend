@@ -22,4 +22,12 @@ class Member extends Model
         return $this->belongsTo(Region::class, 'region_id', 'id');
     }
 
+    public function zone() {
+        return $this->belongsTo(Zone::class, 'zone_id', 'id');
+    }
+
+    public function stream() {
+        return $this->belongsTo(Stream::class, 'stream_id', 'id');
+    }
+
 }
