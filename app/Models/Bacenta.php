@@ -32,4 +32,8 @@ class Bacenta extends Model
         return $this->hasMany(Service::class, 'bacenta_id', 'id');
     }
 
+    public function busArrivals(){
+        return $this->hasMany(Arrival::class, 'bacenta_id', 'id');
+    }
+
 }

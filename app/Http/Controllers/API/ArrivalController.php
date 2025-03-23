@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Arrival;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 
@@ -12,10 +13,9 @@ class ArrivalController extends BaseController
 {
 
     public function index(Request $request) {
+        $user = Auth::user();
+        $arrivals = $user->bacentas()->with('busArrivals')->get();
 
-        $bacenta_id = $request->get('bacenta_id');
-
-        $arrivals = Arrival::where('bacenta_id', $bacenta_id)->get();
         return $this->sendResponse($arrivals, 'Arrivals retrieved successfully.');
     }
 
