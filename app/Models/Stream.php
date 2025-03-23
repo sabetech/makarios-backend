@@ -41,4 +41,8 @@ class Stream extends Model
     public function services(){
         return $this->hasMany(Service::class, 'stream_id', 'id');
     }
+
+    public function bacentas() {
+        return $this->regions()->with('bacentas');
+    }
 }
