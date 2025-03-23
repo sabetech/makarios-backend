@@ -162,12 +162,13 @@ class ServiceController extends BaseController
 
             if ($stream) {
                 $streamServiceType = ServiceType::where('service_type', 'Stream Service')->first();
-                Log::info(["Stream Service Type: " => $streamServiceType->id]);
+
                 $services = $stream->services()
                                 ->where('service_type_id', $streamServiceType->id)
-                                ->with(['serviceType', 'church', 'bacenta', 'zone', 'region'])->get();
+                                ->with(['serviceType', 'church', 'bacenta', 'zone', 'region'])
+                                ->orderBy('date', 'desc')->get();
 
-                Log::info(["Services Stream::"=> $services]);
+
                 return $this->sendResponse($services, 'Services retrieved successfully.');
             }
         }
@@ -175,27 +176,32 @@ class ServiceController extends BaseController
         if ($user) {
 
             if ($user->roles->count() > 0 && $user->roles[0]->name == 'Super Admin') {
-                $services = Service::with(['serviceType', 'church', 'bacenta', 'zone', 'region'])->get();
+                $services = Service::with(['serviceType', 'church', 'bacenta', 'zone', 'region'])
+                                    ->orderBy('date', 'desc')->get();
                 return $this->sendResponse($services, 'Services retrieved successfully.');
             }
 
             if ($stream = $user->stream) {
-                $services = $stream->services()->with(['serviceType', 'church', 'bacenta', 'zone', 'region'])->get();
+                $services = $stream->services()->with(['serviceType', 'church', 'bacenta', 'zone', 'region'])
+                                               ->orderBy('date', 'desc')->get();
                 return $this->sendResponse($services, 'Services retrieved successfully.');
             }
 
             if ($region = $user->region) {
-                $services = $region->services()->with(['serviceType', 'church', 'bacenta', 'zone', 'region'])->get();
+                $services = $region->services()->with(['serviceType', 'church', 'bacenta', 'zone', 'region'])
+                                                ->orderBy('date', 'desc')->get();
                 return $this->sendResponse($services, 'Services retrieved successfully.');
             }
 
             if ($zone = $user->zone) {
-                $services = $zone->services()->with(['serviceType', 'church', 'bacenta', 'zone', 'region'])->get();
+                $services = $zone->services()->with(['serviceType', 'church', 'bacenta', 'zone', 'region'])
+                                            ->orderBy('date', 'desc')->get();
                 return $this->sendResponse($services, 'Services retrieved successfully.');
             }
 
             if ($bacenta = $user->bacenta) {
-                $services = $bacenta->services()->with(['serviceType', 'church', 'bacenta', 'zone', 'region'])->get();
+                $services = $bacenta->services()->with(['serviceType', 'church', 'bacenta', 'zone', 'region'])
+                                                ->orderBy('date', 'desc')->get();
                 return $this->sendResponse($services, 'Services retrieved successfully.');
             }
 

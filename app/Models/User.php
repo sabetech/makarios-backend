@@ -54,20 +54,36 @@ class User extends Authenticatable
 
     public function stream() {
 
-        if ($this->roles[0] == 'Stream Lead') {
+        if ($this->roles[0]->name == 'Stream Lead') {
             return $this->hasOne(Stream::class, 'stream_overseer_id', 'id');
         }
 
-        if ($this->roles[0] == 'Stream Admin') {
+        if ($this->roles[0]->name == 'Stream Admin') {
             return $this->hasOne(Stream::class, 'stream_admin_id', 'id');
         }
 
-        return $this->hasOne(Stream::class, 'stream_overseer_id', 'id');
+        return $this->region->stream();
+
+    }
+
+    public function regions() {
 
     }
 
     public function region() {
-        return $this->hasOne(Region::class, 'leader_id', 'id');
+        if ($this->roles[0]->name == 'Region Lead') {
+            return $this->hasOne(Region::class, 'leader_id', 'id');
+        }
+
+        if ($this->roles[0]->name == 'Zone Lead') {
+            return $this->zone()->region();
+        }
+
+        if ($this->roles[0]->name == 'Bacenta Leader') {
+            return $this->bacenta()->region();
+        }
+
+        return null;
     }
 
     public function zone() {
@@ -117,14 +133,25 @@ class User extends Authenticatable
         }
     }
 
-    /**
-     * Get Council the User belongs to.
-     *
-     * @var array<string, string>
-     */
-
     public function bacenta() {
         return $this->hasOne(Bacenta::class, 'leader_id', 'id');
+    }
+
+    public function bacentas() {
+
+        if ($this->roles[0]->name == 'Super Admin' || $this->roles[0] == 'Bishop' || $this->roles[0] == 'General Admin') {
+            return Bacenta::select();
+        }
+
+        if ($this->roles[0]->name == 'Stream Lead') {
+            return $this->stream()->bacentas();
+        }
+
+        if ($this->roles[0]->name == 'Region Lead') {
+            return $this->region()->bacentas();
+        }
+
+        return $this->hasMany(Bacenta::class, 'leader_id', 'id');
     }
 
 }

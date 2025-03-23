@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Bacenta extends Model
 {
     use HasFactory;
+    use SoftDeletes;
     protected $guarded = ['id'];
 
     public function zone(){
@@ -28,6 +30,10 @@ class Bacenta extends Model
 
     public function services(){
         return $this->hasMany(Service::class, 'bacenta_id', 'id');
+    }
+
+    public function busArrivals(){
+        return $this->hasMany(Arrival::class, 'bacenta_id', 'id');
     }
 
 }
