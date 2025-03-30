@@ -11,13 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::create('users_church_info', function (Blueprint $table) {
             //
-            $table->unsignedBigInteger('church_id')->after('email')->references('id')->on('churches')->onDelete('cascade')->nullable();
-            $table->unsignedBigInteger('stream_id')->after('church_id')->references('id')->on('streams')->onDelete('cascade')->nullable();
-            $table->unsignedBigInteger('region_id')->after('stream_id')->references('id')->on('regions')->onDelete('cascade')->nullable();
-            $table->unsignedBigInteger('zone_id')->after('region_id')->references('id')->on('zones')->onDelete('cascade')->nullable();
-            $table->unsignedBigInteger('bacenta_id')->after('zone_id')->references('id')->on('bacentas')->onDelete('cascade')->nullable();
+            $table->increments('id');
+            $table->unsignedBigInteger('user_id')->references('id')->on('users')->onDelete('cascade')->unique();
+            $table->unsignedBigInteger('church_id')->references('id')->on('churches')->onDelete('cascade')->nullable();
+            $table->unsignedBigInteger('stream_id')->references('id')->on('streams')->onDelete('cascade')->nullable();
+            $table->unsignedBigInteger('region_id')->references('id')->on('regions')->onDelete('cascade')->nullable();
+            $table->unsignedBigInteger('zone_id')->references('id')->on('zones')->onDelete('cascade')->nullable();
+            $table->unsignedBigInteger('bacenta_id')->references('id')->on('bacentas')->onDelete('cascade')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -26,13 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('user', function (Blueprint $table) {
-            //
-            $table->dropColumn('church_id');
-            $table->dropColumn('stream_id');
-            $table->dropColumn('region_id');
-            $table->dropColumn('zone_id');
-            $table->dropColumn('bacenta_id');
-        });
+        Schema::dropIfExists('users_church_info');
     }
 };
