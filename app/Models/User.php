@@ -54,36 +54,41 @@ class User extends Authenticatable
 
     public function stream() {
 
-        if ($this->roles[0]->name == 'Stream Lead') {
+        if ( isset($this->roles[0]) && ($this->roles[0]->name == 'Stream Lead')) {
             return $this->hasOne(Stream::class, 'stream_overseer_id', 'id');
         }
 
-        if ($this->roles[0]->name == 'Stream Admin') {
+        if ( isset($this->roles[0]) && $this->roles[0]->name == 'Stream Admin') {
             return $this->hasOne(Stream::class, 'stream_admin_id', 'id');
         }
 
-        return $this->region->stream();
+        if (isset($this->region)) {
+            return $this->region->stream();
+        }
+
+        return $this->hasOne(Stream::class, 'stream_overseer_id', 'id');
 
     }
 
+    //TODO:: This should get the list of regions for user who is a stream lead
     public function regions() {
 
     }
 
     public function region() {
-        if ($this->roles[0]->name == 'Region Lead') {
+        if (isset($this->roles[0]) && $this->roles[0]->name == 'Region Lead') {
             return $this->hasOne(Region::class, 'leader_id', 'id');
         }
 
-        if ($this->roles[0]->name == 'Zone Lead') {
+        if (isset($this->roles[0]) && $this->roles[0]->name == 'Zone Lead') {
             return $this->zone()->region();
         }
 
-        if ($this->roles[0]->name == 'Bacenta Leader') {
+        if (isset($this->roles[0]) && $this->roles[0]->name == 'Bacenta Leader') {
             return $this->bacenta()->region();
         }
 
-        return null;
+        return $this->hasOne(Region::class, 'leader_id', 'id');
     }
 
     public function zone() {
@@ -138,19 +143,19 @@ class User extends Authenticatable
     }
 
     public function bacentas() {
+        if ($this->roles->count() > 0) {
+            if ($this->roles[0]->name == 'Super Admin' || $this->roles[0] == 'Bishop' || $this->roles[0] == 'General Admin') {
+                return Bacenta::select();
+            }
 
-        if ($this->roles[0]->name == 'Super Admin' || $this->roles[0] == 'Bishop' || $this->roles[0] == 'General Admin') {
-            return Bacenta::select();
+            if ($this->roles[0]->name == 'Stream Lead') {
+                return $this->stream()->bacentas();
+            }
+
+            if ($this->roles[0]->name == 'Region Lead') {
+                return $this->region()->bacentas();
+            }
         }
-
-        if ($this->roles[0]->name == 'Stream Lead') {
-            return $this->stream()->bacentas();
-        }
-
-        if ($this->roles[0]->name == 'Region Lead') {
-            return $this->region()->bacentas();
-        }
-
         return $this->hasMany(Bacenta::class, 'leader_id', 'id');
     }
 
