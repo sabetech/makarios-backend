@@ -81,11 +81,11 @@ class User extends Authenticatable
         }
 
         if (isset($this->roles[0]) && $this->roles[0]->name == 'Zone Lead') {
-            return $this->zone()->region();
+            return $this->zone->region();
         }
 
         if (isset($this->roles[0]) && $this->roles[0]->name == 'Bacenta Leader') {
-            return $this->bacenta()->region();
+            return $this->bacenta->region();
         }
 
         return $this->hasOne(Region::class, 'leader_id', 'id');
