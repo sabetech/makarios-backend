@@ -1,20 +1,27 @@
 @extends('base')
 @section('content')
+    <p>
+        Info! <br><br>
+
+        Step 2: Change any information here that is not right to the correct one. <br><br>
+    </p>
     <h1 class="md-typescale-display-medium">Hello! {{ $user->name }}</h1>
     <img src="{{ $user->img_url }}" alt="Profile Picture" class="profile-picture"  style="width: 200px; height: auto;">
-    <form method="POST" action="{{ route('updateUser', $user->id) }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('update_user', $user->id) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         <p class="md-typescale-body-medium">Update your Bio Data</p>
         <md-outlined-text-field name="name" label="Name" value="{{ $user->name }}"></md-outlined-text-field>
         <md-outlined-text-field name="email" label="Email" value="{{ $user->email }}"></md-outlined-text-field>
-        <md-outlined-text-field name="phone" label="Phone" value=""></md-outlined-text-field>
-        <md-outlined-text-field name="address" label="Home Address" value=""></md-outlined-text-field>
+        <md-outlined-text-field name="phone" label="Phone" value="{{ $user->phone }}"></md-outlined-text-field>
+        <md-outlined-text-field name="address" label="Home Address" value="{{ $user->home_address }}"></md-outlined-text-field>
 
-        <input type="file" name="profile_picture" id="fileInput" hidden>
+
+        <input type="file" name="profile_picture" id="fileInput" >
         <p class="file-name" id="fileName">Upload a new picture</p>
-        <md-outlined-button id="uploadButton">Choose File</md-outlined-button>
-        <p class="file-name" id="fileName">No file selected</p>
+        {{-- <md-filled-tonal-button id="uploadButton">Choose File</md-filled-tonal-button> --}}
+        {{-- <button id="uploadButton">Choose File</button>
+        <p class="file-name" id="fileName">No file selected</p> --}}
 
         <hr />
 
@@ -81,6 +88,12 @@
             return;
         }
 
+        if (value === "") {
+            list.style.display = "none";
+            streamId.value = ""
+            return;
+        }
+
         filtered.forEach(stream => {
             const item = document.createElement("div");
             item.classList.add("autocomplete-item");
@@ -93,6 +106,7 @@
             });
 
             list.appendChild(item);
+
         });
 
         list.style.display = "block";
@@ -105,6 +119,12 @@
         list.innerHTML = ""; // Clear previous suggestions
         if (filtered.length === 0) {
             list.style.display = "none";
+            return;
+        }
+
+        if (value === "") {
+            list.style.display = "none";
+            regionId.value = "";
             return;
         }
 
@@ -135,6 +155,12 @@
             return;
         }
 
+        if (value === "") {
+            list.style.display = "none";
+            zoneId.value = "";
+            return;
+        }
+
         filtered.forEach(zone => {
             const item = document.createElement("div");
             item.classList.add("autocomplete-item");
@@ -161,12 +187,18 @@
             return;
         }
 
+        if (value === "") {
+            list.style.display = "none";
+            bacentaId.value = "";
+            return;
+        }
+
         filtered.forEach(bacenta => {
             const item = document.createElement("div");
             item.classList.add("autocomplete-item");
-            item.textContent = bacenta.name;
+            item.textContent = bacenta.name + " (" + bacenta.region.name + ")";
             item.addEventListener("click", () => {
-                autocompleteBacenta.value = bacenta.name;
+                autocompleteBacenta.value = bacenta.name + " (" + bacenta.region.name + ")";
                 bacentaId.value = bacenta.id;
                 list.style.display = "none";
             });
@@ -175,10 +207,12 @@
         list.style.display = "block";
     })
 
-
     uploadButton.addEventListener("click", () => {
         fileInput.click();
     });
+
+
+
 
     // Update file name when a file is selected
     fileInput.addEventListener("change", () => {
