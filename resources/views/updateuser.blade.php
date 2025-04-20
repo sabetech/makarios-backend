@@ -1,9 +1,19 @@
 @extends('base')
 @section('content')
 <h1 class="md-typescale-display-medium">Hello!</h1>
-<form method="POST" action="{{ route('getUser') }}">
+<p class="md-typescale-body-medium">
+    Info! <br><br>
+
+    This is to help update the church information of leaders. <br><br>
+    Step 1: Search for Leader and Tap to select the search suggestions <br><br>
+</p>
+
+<form method="POST" action="{{ route('getUserInfo') }}">
     @csrf
-    <p class="md-typescale-body-medium">Update your church information</p>
+
+    @if (isset($success))
+        <p class="md-typescale-body-medium">{{ $success}}</p>
+    @endif
     <div class="autocomplete-container">
         <md-outlined-text-field id="autocomplete-input" label="Search for your name"></md-outlined-text-field>
         <div class="autocomplete-list" id="autocomplete-list"></div>
