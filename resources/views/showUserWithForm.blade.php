@@ -135,7 +135,7 @@
 
             item.addEventListener("click", () => {
                 autocompleteRegion.value = region.name;
-                region.value = region.id;
+                regionId.value = region.id;
                 list.style.display = "none";
             });
 
