@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ServiceController extends BaseController
 {
@@ -274,5 +275,167 @@ class ServiceController extends BaseController
         return $this->sendResponse($serviceAverage, 'Average Service Attendance retrieved successfully.');
 
     }
+
+    public function newIndex() {
+        /*
+            This is going to get regions based on the role of the user
+            Super Admin - All Regions
+            Stream Admin/Lead - Regions in their stream
+            Region Admin/Lead - Their region only
+            Zone Admin/Lead - Their region only
+            Bacenta Admin/Leader - Their region only
+
+            sample structure: Role: Region Lead
+            [
+                {
+                    "id": 1,
+                    "region": "region_name",
+                    "average_attendance": 120,
+                    "average_offering": 2000,
+                    "latest_services": [{ //Get the services from the start for the start of the week to current date
+                        "id": 10,
+                        "date": "2023-08-15",
+                        "offering": 2500,
+                        "attendance": 130,
+                        "service_type": "Bacenta Service",
+                        "bacenta": "Bacenta Name",
+                    },
+                        "id": 10,
+                        "date": "2023-08-15",
+                        "offering": 2500,
+                        "attendance": 130,
+                        "service_type": "Bacenta Service",
+                        "bacenta": "Bacenta Name",
+                    }],
+                    "bacentas": [ //List of bacentas in the region with their average attendance and offering
+                        {
+                            "id": 5,
+                            "name": "Bacenta Name",
+                            "average_attendance": 50,
+                            "average_offering": 1000,
+                            "services": [ //Get services for the past 8 weeks
+                                    {
+                                        "id": 10,
+                                        "date": "2023-08-15",
+                                        "offering": 2500,
+                                        "attendance": 130,
+                                        "service_type": "Bacenta Service",
+                                        "bacenta": "Bacenta Name",
+                                    },
+                                    {
+                                        "id": 10,
+                                        "date": "2023-08-15",
+                                        "offering": 2500,
+                                        "attendance": 130,
+                                        "service_type": "Bacenta Service",
+                                        "bacenta": "Bacenta Name",
+                                    }
+                                    ...
+                                ]
+                            }
+                        },
+                        {
+                            "id": 6,
+                            "name": "Bacenta Name",
+                            "average_attendance": 50,
+                            "average_offering": 1000,
+                            "services": [ //Get services for the past 8 weeks
+                                    {
+                                        "id": 10,
+                                        "date": "2023-08-15",
+                                        "offering": 2500,
+                                        "attendance": 130,
+                                        "service_type": "Bacenta Service",
+                                        "bacenta": "Bacenta Name",
+                                    },
+                                    {
+                                        "id": 10,
+                                        "date": "2023-08-15",
+                                        "offering": 2500,
+                                        "attendance": 130,
+                                        "service_type": "Bacenta Service",
+                                        "bacenta": "Bacenta Name",
+                                    }
+                                    ...
+                                ]
+                            }
+                        }
+                    ],
+                    "conventions": [],
+                    "joint_bacenta_services": [],
+                }
+            ]
+        */
+
+        $regionServiceData = Region::with(['bacentas' => function($query) {
+            $query->select('id', 'name', 'region_id', 'leader_id')
+            ->with(['leader' => function ($query) {
+                $query->select('id', 'name', 'img_url');
+            },
+            'services' => function ($query) {
+                $query->select('id', 'date', 'offering', 'attendance', 'service_type_id', 'bacenta_id', 'service_photo', 'treasurer_photo')
+                    ->orderBy('date', 'desc');
+            }]);
+
+        }, 'leader' => function ($query) {
+            $query->select('id', 'name', 'img_url');
+
+        }, 'stream' => function ($query) {
+            $query->select('id', 'name');
+        }])
+        ->select('id', 'name', 'leader_id', 'stream_id')
+        ->get();
+
+        $currentDate = now();
+        $weeklyRanges = [];
+        for ($i = 0; $i < 4; $i++) {
+            $startOfWeek = $currentDate->copy()->subWeeks($i)->startOfWeek();
+            $endOfWeek = $currentDate->copy()->subWeeks($i)->endOfWeek();
+            $weeklyRanges[] = ['start' => $startOfWeek, 'end' => $endOfWeek];
+        }
+        foreach ($regionServiceData as $region) {
+            /*
+                Step 1:
+                Generate 4 weekly ranges from current date
+                Step 2:
+                For each bacenta in the region, get the services that fall within the weekly ranges
+                Step 3:
+                Calculate the sum of attendance and offering for each week for all bacentas in the region
+                Step 4:
+                Store the weekly sums in the region object as attendance_weekly_summary and offering_weekly_summary
+            */
+
+            $attendanceWeeklySummary = [];
+            $offeringWeeklySummary = [];
+            foreach ($weeklyRanges as $range) {
+                $weeklyAttendanceSum = 0;
+                $weeklyOfferingSum = 0;
+                foreach ($region->bacentas as $bacenta) {
+                    foreach ($bacenta->services as $service) {
+                        if ($service->date >= $range['start'] && $service->date <= $range['end']) {
+                            $weeklyAttendanceSum += $service->attendance;
+                            $weeklyOfferingSum += $service->offering;
+                        }
+                    }
+                }
+
+                $attendanceWeeklySummary[] = [
+                    'week_start' => Carbon::parse($range['start']->toDateString())->format('d M'),
+                    'week_end' => Carbon::parse($range['end']->toDateString())->format('d M'),
+                    'total_attendance' => $weeklyAttendanceSum
+                ];
+                $offeringWeeklySummary[] = [
+                    'week_start' => Carbon::parse($range['start']->toDateString())->format('d M'),
+                    'week_end' => Carbon::parse($range['end']->toDateString())->format('d M'),
+                    'total_offering' => $weeklyOfferingSum
+                ];
+            }
+            $region->attendance_weekly_summary = $attendanceWeeklySummary;
+            $region->offering_weekly_summary = $offeringWeeklySummary;
+        }
+
+        return response()->json(['data' => $regionServiceData], 200);
+    }
+
 
 }

@@ -79,8 +79,9 @@ class MemberController extends BaseController
         $basonta_id = $request->get('basonta_id', null);
 
         $file = $request->file('picture', null);
+        Log::info("Bool Check for Picture: file?", ['hasFile' => $file]);
 
-        if ($request->hasFile('picture')) {
+        if ($file) {
             $file = $request->file('picture');
             $result = Cloudinary::upload($file->getRealPath(), [
                 'folder' => 'members',
@@ -95,10 +96,12 @@ class MemberController extends BaseController
 
             $imageUrl = $result->getSecurePath();
         }else {
+            Log::info("No Image Found, Using URL from request [else block]");
             $imageUrl = $request->get('img_url');
         }
 
         if (!$imageUrl) {
+            Log::info("No Image Found???");
             return $this->sendError('Image not found', ['error' => 'Image Could not be uploaded, Please Try again'], 404);
         }
 
@@ -119,19 +122,19 @@ class MemberController extends BaseController
 
             if ($role->name == 'Region Lead') {
                 $region_id = $user->region->id;
-                $stream_id = $user->region->stream->id;
+                $stream_id = $user->stream->id;
             }
 
             if ($role->name == 'Zone Lead') {
                 $zone_id = $user->zone->id;
-                $stream_id = $user->zone->stream->id;
-                $region_id = $user->zone->region->id;
+                $stream_id = $user->stream->id;
+                $region_id = $user->region->id;
             }
 
             if ($role->name == 'Bacenta Leader') {
                 $bacenta_id = $user->bacenta->id;
-                $stream_id = $user->bacenta->region->stream->id;
-                $region_id = $user->bacenta->region->id;
+                $stream_id = $user->stream->id;
+                $region_id = $user->region->id;
 
                 if ($zone = $user->bacenta->zone) {
                     $zone_id = $zone->id;
