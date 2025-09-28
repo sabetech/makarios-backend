@@ -55,44 +55,15 @@ class User extends Authenticatable
     }
 
     public function stream() {
-
-        if ( isset($this->roles[0]) && ($this->roles[0]->name == 'Stream Lead')) {
-            return $this->hasOne(Stream::class, 'stream_overseer_id', 'id');
-        }
-
-        if ( isset($this->roles[0]) && $this->roles[0]->name == 'Stream Admin') {
-            return $this->hasOne(Stream::class, 'stream_admin_id', 'id');
-        }
-
-        if (isset($this->region)) {
-            return $this->region->stream();
-        }
-
-        return $this->hasOne(Stream::class, 'stream_overseer_id', 'id');
-
+       return $this->hasOneThrough(Stream::class, UserChurchInfo::class, 'id', 'id', 'user_id', 'stream_id');
     }
 
-    //TODO:: This should get the list of regions for user who is a stream lead
+    //TODO:: This should get the list of regions for user who is a stream lead: ie Bishops
     public function regions() {
-
+        return $this->hasManyThrough(Region::class, UserChurchInfo::class, 'id', 'id', 'user_id', 'region_id');
     }
 
     public function region() {
-        if (isset($this->roles[0]) && $this->roles[0]->name == 'Region Lead') {
-            return $this->hasOne(Region::class, 'leader_id', 'id');
-        }
-
-        if (isset($this->roles[0]) && $this->roles[0]->name == 'Zone Lead') {
-            if (isset($this->zone)) {
-                return $this->zone->region();
-            }
-        }
-
-        if (isset($this->roles[0]) && $this->roles[0]->name == 'Bacenta Leader') {
-            if (isset($this->bacenta)) {
-                return $this->bacenta->region();
-            }
-        }
 
         return $this->hasOne(Region::class, 'leader_id', 'id');
     }
@@ -163,6 +134,26 @@ class User extends Authenticatable
             }
         }
         return $this->hasMany(Bacenta::class, 'leader_id', 'id');
+    }
+
+    // public function members() {
+    //     return $this->hasMany(Member::class, 'leader_id', 'id');
+    // } TODO:: Come back to this. It looks legit but that's now what I'm working on right now
+
+    public function Microchurches() {
+        //if the person is a stream lead, they should see all microchurches in their stream
+        if ($this->roles[0]->name == 'Stream Lead') {
+            return $this->stream->microchurches();
+        }
+
+        // if the person is a region lead, they should see all microchurches in their region
+        if ($this->roles[0]->name == 'Region Lead') {
+            return $this->region->microchurches();
+        }
+
+        //if the person is a microchurch leader.
+        return $this->hasMany(MicroChurch::class, 'leader_id', 'id');
+
     }
 
 }

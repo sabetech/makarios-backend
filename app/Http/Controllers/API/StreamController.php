@@ -39,4 +39,16 @@ class StreamController extends BaseController
         //TODO:: handle stream not found later
         return $this->sendResponse($stream, 'Stream retrieved successfully.');
     }
+
+    public function getRegionsViaStreams() {
+        $user = Auth::user();
+        if (!$user) {
+            return $this->sendError('Unauthorised.', ['error'=>'User not found'], 401);
+        }
+
+        $regions = Stream::with('regions')->get();
+
+        return $this->sendResponse($regions, 'Stream Regions retrieved successfully.');
+    }
+
 }

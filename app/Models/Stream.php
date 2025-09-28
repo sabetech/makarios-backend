@@ -45,4 +45,8 @@ class Stream extends Model
     public function bacentas() {
         return $this->regions()->with('bacentas');
     }
+
+    public function microchurches() {
+        return $this->hasMany(MicroChurch::class, 'stream_id', 'id');
+    }
 }

@@ -13,8 +13,7 @@ use App\Http\Controllers\API\BasontaController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\RegionController;
 use App\Http\Controllers\API\ServiceController;
-use App\Models\Arrival;
-use Illuminate\Support\Arr;
+use App\Http\Controllers\MicrochurchController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -32,11 +31,21 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::controller(UserController::class)->group(function(){
         Route::get('/user', 'getUserViaEmail');
         Route::get('/dashboard-summary', 'getDashboardSummary');
+        Route::get('/users', 'index');
+        Route::post('/users', 'create');
+        Route::get('/roles', 'getRoles');
+        Route::post('/roles', 'createRole');
     });
 
     Route::controller(MemberController::class)->group(function(){
         Route::get('members', 'index');
         Route::post('members', 'create');
+    });
+
+    Route::controller(MicrochurchController::class)->group(function(){
+        Route::get('microchurches', 'index');
+        Route::get('microchurches/{microchurch}', 'show');
+        Route::post('microchurches', 'create');
     });
 
     Route::controller(RegionController::class)->group(function(){
@@ -47,6 +56,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::controller(StreamController::class)->group(function(){
         Route::get('streams', 'index');
         Route::get('stream/{stream}', 'show');
+        Route::get('streams/regions', 'getRegionsViaStreams');
     });
 
     Route::controller(ZoneController::class)->group(function(){
@@ -67,8 +77,8 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::get('service/types', 'serviceTypes');
         Route::post('service', 'create');
         Route::get('services', 'index');
+        Route::get('service/newIndex', 'newIndex');
         Route::get('service/averages', 'calculateServiceAverages');
-
     });
 
     Route::controller(ArrivalController::class)->group(function () {

@@ -11,7 +11,9 @@ use App\Models\Region;
 use App\Models\Bacenta;
 use App\Models\Zone;
 use App\Models\Member;
+use App\Models\MicroChurch;
 use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Models\Role;
 
 class UserController extends BaseController
 {
@@ -93,6 +95,16 @@ class UserController extends BaseController
                     "name" => "Members",
                     "count" => Member::count()
                 ];
+                $dashboardValues[] = [
+                    "name" => "Microchurches",
+                    "count" => MicroChurch::count() // Placeholder for Micro Churches count
+                ];
+
+                $dashboardValues[] = [
+                    "name" => "Leaders",
+                    "count" => User::count()
+                ];
+
                 break;
 
             case "Region Lead":
@@ -116,6 +128,18 @@ class UserController extends BaseController
                     "count" =>  $user->region->members()->count()
                 ];
 
+                $dashboardValues[] = [
+                    "name" => "Microchurches",
+                    "count" => $user->region->microchurches()->count()
+                ];
+
+                break;
+
+            case "Microchurch Leader":
+                $dashboardValues[] = [
+                    "name" => "Microchurches",
+                    "count" => $user->Microchurches()->count()
+                ];
                 break;
 
             case "Zone Lead":
@@ -150,4 +174,79 @@ class UserController extends BaseController
         }
         return $this->sendResponse($dashboardValues, 'User retrieved successfully.');
     }
+
+    public function index(Request $request) {
+        $users = User::with('roles')->get();
+
+        //Filter by role if provided
+        $role = $request->get('role', null);
+        if ($role) {
+            $users = $users->filter(function($user) use ($role) {
+                return $user->hasRole($role);
+            });
+        }
+
+        return $this->sendResponse($users, 'Leaders retrieved successfully.');
+    }
+
+    public function getRoles() {
+        $roles = Role::all();
+
+        Log::info("Roles: ", [$roles]);
+
+        return $this->sendResponse($roles, 'Roles retrieved successfully.');
+    }
+
+    public function createRole(Request $request) {
+        $roleName = $request->get('name');
+        if (!$roleName) {
+            return $this->sendError('Role name is required.');
+        }
+
+        $role = Role::create(['name' => $roleName]);
+
+        Log::info("Role created: ", [$role]);
+
+        return $this->sendResponse($role, 'Role created successfully.');
+    }
+
+    public function deleteRole(Request $request, $id) {
+        $role = Role::find($id);
+        if (!$role) {
+            return $this->sendError('Role not found.');
+        }
+
+        $role->delete();
+
+        Log::info("Role deleted: ", [$role]);
+
+        return $this->sendResponse([], 'Role deleted successfully.');
+    }
+
+
+    public function create(Request $request) {
+        $user = new User();
+        $user->name = $request->get('name');
+        $user->email = strtolower($request->get('email'));
+
+        //$user->save();
+
+        //Assign role if provided
+
+        $roleIds = $request->roles;
+        Log::info([ "Role Name: "=>$roleIds ]);
+        if ($roleIds) {
+            $roles = Role::whereIn('id', $roleIds)->pluck('name')->toArray();
+            if ($roles) {
+                Log::info(["Roles to be assigned: " => $roles]);
+                $user->syncRoles($roles);
+            }
+        }
+
+        Log::info("User created: ", [$user]);
+        $user->roles()->sync($roleIds);
+        return $this->sendResponse($user, 'User created successfully.');
+
+    }
+
 }

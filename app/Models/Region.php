@@ -41,4 +41,8 @@ class Region extends Model
         return $this->hasMany(Service::class, 'region_id', 'id');
     }
 
+    public function microchurches(){
+        return $this->hasMany(MicroChurch::class, 'region_id', 'id');
+    }
+
 }
