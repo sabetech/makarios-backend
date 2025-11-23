@@ -90,7 +90,7 @@ class ServiceController extends BaseController
             $service->bacenta_id = $request->get('bacenta_id');
             $bacenta = Bacenta::find($service->bacenta_id);
             if ($bacenta) {
-                $service->zone_id = $bacenta->zone->id;
+                //$service->zone_id = $bacenta->zone->id;
                 $service->region_id = $bacenta->region->id;
                 $service->stream_id = $bacenta->region->stream->id;
                 $service->church_id = $bacenta->region->stream->church->id;
