@@ -13,19 +13,26 @@ use App\Http\Controllers\API\BasontaController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\RegionController;
 use App\Http\Controllers\API\ServiceController;
-use App\Http\Controllers\MicrochurchController;
+use App\Http\Controllers\API\MicrochurchController;
+use App\Http\Controllers\API\CampaignController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
 // })->middleware('auth:sanctum');
 
-Route::controller(RegisterController::class)->group(function(){
-    Route::post('register', 'register');
-    Route::post('login', 'login');
-    Route::post('users/upload-photo', 'uploadPhoto');
-});
+// API v2 routes live under /api/v2/*
+Route::prefix('v2')->group(base_path('routes/api_v2.php'));
 
-Route::middleware('auth:sanctum')->group( function () {
+Route::middleware('setDatabase')->group(function () {
+    
+    Route::controller(RegisterController::class)->group(function(){
+        Route::post('register', 'register');
+        Route::post('login', 'login');
+        Route::post('users/upload-photo', 'uploadPhoto');
+    });
+
+});
+Route::middleware(['auth:sanctum', 'setDatabase'])->group( function () {
     Route::resource('churches', ChurchController::class);
 
     Route::controller(UserController::class)->group(function(){
@@ -39,13 +46,11 @@ Route::middleware('auth:sanctum')->group( function () {
 
     Route::controller(MemberController::class)->group(function(){
         Route::get('members', 'index');
+        Route::get('members/{id}', 'show');
         Route::post('members', 'create');
-    });
+        Route::put('members/{id}', 'update');
+        Route::delete('members/{id}', 'destroy');
 
-    Route::controller(MicrochurchController::class)->group(function(){
-        Route::get('microchurches', 'index');
-        Route::get('microchurches/{microchurch}', 'show');
-        Route::post('microchurches', 'create');
     });
 
     Route::controller(RegionController::class)->group(function(){
