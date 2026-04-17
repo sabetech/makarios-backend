@@ -16,6 +16,13 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\ApiAuthenticate::class,
         ]);
 
+        $middleware->append(\App\Http\Middleware\SetDatabaseByOrigin::class);
+
+        $middleware->alias([
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+        ]);
+
         $middleware->redirectGuestsTo(function (Request $request) {
             if ($request->is('api/*')) {
                 return response()->json([
