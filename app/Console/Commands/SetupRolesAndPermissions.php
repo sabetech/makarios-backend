@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use DB;
 
 class SetupRolesAndPermissions extends Command
 {
@@ -13,7 +14,7 @@ class SetupRolesAndPermissions extends Command
      *
      * @var string
      */
-    protected $signature = 'app:setup-roles-and-permissions';
+    protected $signature = 'app:setup-roles-and-permissions {--connection=mysql : The database connection to use}';
 
     /**
      * The console command description.
@@ -37,6 +38,12 @@ class SetupRolesAndPermissions extends Command
             Bacenta Leader, Bacenta Admin
             Fellowship Leader
         */
+        $connection = $this->option('connection');
+
+        // Set it as the default for this process
+        DB::setDefaultConnection($connection);
+
+        $this->info("Using connection: {$connection}");
 
         $superAdmin = Role::firstOrCreate(['name' => 'Super Admin']);
 
@@ -48,9 +55,6 @@ class SetupRolesAndPermissions extends Command
 
         $regionLead = Role::firstOrCreate(['name' => 'Region Lead']);
         $regionAdmin = Role::firstOrCreate(['name' => 'Region Admin']);
-
-        $zoneLead = Role::firstOrCreate(['name' => 'Zone Lead']);
-        $zoneAdmin = Role::firstOrCreate(['name' => 'Zone Admin']);
 
         $arrivalAdmin = Role::firstOrCreate(['name' => 'Arrival Admin']);
 
@@ -166,23 +170,6 @@ class SetupRolesAndPermissions extends Command
             'firstOrCreate bacentas',
             'update bacentas',
             'delete bacentas',
-        ]);
-
-        $zoneLead->givePermissionTo([
-            'view zones',
-            'firstOrCreate zones',
-            'update zones',
-            'delete zones',
-
-            'view bacentas',
-            'firstOrCreate bacentas',
-            'update bacentas',
-            'delete bacentas',
-
-            'view members',
-            'firstOrCreate members',
-            'update members',
-            'delete members',
         ]);
 
         $bacentaLeader->givePermissionTo([
