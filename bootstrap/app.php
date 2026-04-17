@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'setDatabase' => \App\Http\Middleware\SetDatabaseByOrigin::class,
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request) {
