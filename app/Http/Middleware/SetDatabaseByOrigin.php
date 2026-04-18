@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SetDatabaseByOrigin
 {
@@ -23,6 +24,8 @@ class SetDatabaseByOrigin
     public function handle(Request $request, Closure $next): Response
     {
         $origin = $request->getHost(); // or parse from Origin/Referer header
+
+        Log::info("Incoming request from origin: {$origin}");
 
         $connection = $this->originConnectionMap[$origin] ?? 'mysql_wol'; // fallback to default
 
