@@ -22,6 +22,7 @@ class RegisterController extends BaseController
      */
     public function register(Request $request): JsonResponse
     {
+        Log::info("RegisterController@register called with email: {$request->email}");
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
@@ -69,7 +70,7 @@ class RegisterController extends BaseController
             $user = Auth::user();
             $success['token'] =  $user->createToken('makarios-pwa')->plainTextToken;
             $user->roles;
-            $user->permissions = $user->getPermissionsViaRoles();
+            $user->getPermissionsViaRoles();
             $user->isLeaderOf = $user->isLeaderOf();
             $success['user'] =  $user;
 
