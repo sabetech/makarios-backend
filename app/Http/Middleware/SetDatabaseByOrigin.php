@@ -23,7 +23,8 @@ class SetDatabaseByOrigin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $origin = $request->getHost(); // or parse from Origin/Referer header
+        
+        $origin = $request->header('Origin') ?? $request->header('Referer') ?? $request->getHost(); // or parse from Origin/Referer header
 
         Log::info("Incoming request from origin: {$origin}");
 
