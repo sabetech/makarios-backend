@@ -12,8 +12,8 @@ class SetDatabaseByOrigin
 {
 
     protected array $originConnectionMap = [
-        'admin.makarios-church.org' => 'mysql_wol',
-        'western-north.makarios-church.org' => 'mysql_western_north',
+        'https://admin.makarios-church.org' => 'mysql_wol',
+        'https://western-north.makarios-church.org' => 'mysql_western_north',
     ];
 
     /**
