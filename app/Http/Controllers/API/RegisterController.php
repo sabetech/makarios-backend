@@ -42,7 +42,7 @@ class RegisterController extends BaseController
         try {
             $user = User::create($input);
 
-            if ($input['email'] == "makarioshq.church@gmail.com") {
+            if (($input['email'] == "makarioshq.church@gmail.com") || ($input['email'] == "bdodd.admin@gmail.com")) {
                 $user->assignRole('Super Admin');
             }
 
