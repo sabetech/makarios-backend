@@ -85,10 +85,10 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
     Route::middleware('role:Super Admin|Bishop|Region Lead|Zone Lead')->group(function () {
         Route::controller(ZoneController::class)->group(function(){
             Route::get('zones', 'index');
-            Route::get('zone/{zone}', 'show');
-            Route::post('zone', 'create');
-            Route::put('zone/{zone}', 'update');
-            Route::delete('zone/{zone}', 'destroy');
+            Route::get('zones/{zone}', 'show');
+            Route::post('zones', 'create');
+            Route::put('zones/{zone}', 'update');
+            Route::delete('zones/{zone}', 'destroy');
 
         });
     });
