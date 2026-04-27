@@ -40,14 +40,13 @@ class ZoneController extends BaseController
         // Validate request data here
         $request->validate([
             'name' => 'required|string|max:255',
-            'leader_id' => 'required|exists:users,id',
             'region_id' => 'required|exists:regions,id',
             'stream_id' => 'required|exists:streams,id',
         ]);
 
         $zone = Zone::create([
             'name' => $request->name,
-            'leader_id' => $request->leader_id,
+            'leader_id' => $request->leader_id ?? null,
             'region_id' => $request->region_id,
             'stream_id' => $request->stream_id,
         ]);
