@@ -55,7 +55,6 @@ class ZoneController extends BaseController
             'name' => $request->name,
             'leader_id' => $request->leader_id ?? null,
             'region_id' => $request->region_id,
-            'stream_id' => $stream->id,
         ]);
 
         return $this->sendResponse($zone, 'Zone created successfully.');
