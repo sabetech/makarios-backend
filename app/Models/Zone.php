@@ -14,7 +14,8 @@ class Zone extends Model
         'name',
         'region_id',
         'leader_id',
-        'stream_id'
+        'stream_id',
+        'zone_id',
     ];
 
     public function region()
