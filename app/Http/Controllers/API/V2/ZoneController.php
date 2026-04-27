@@ -44,12 +44,17 @@ class ZoneController extends BaseController
             'region_id' => 'required|exists:regions,id',
         ]);
 
-        //infer the stream from the region
-        $region = Region::find($request->region_id);
-        if (!$region) {
-            return $this->sendError('Region not found', [], 404);
+        if ($request->leader_id) {
+            $request->validate([
+                'leader_id' => 'exists:users,id',
+            ]);
         }
-        $stream = $region->stream;
+
+        $user = User::find($request->leader_id);
+        
+        if ($user && !$user->hasRole('Zone Lead')) {
+            $user->assignRole('Zone Lead');
+        }
 
         $zone = Zone::create([
             'name' => $request->name,

@@ -44,7 +44,7 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
     Route::middleware('role:Super Admin|Bishop')->group(function () {
         Route::controller(StreamController::class)->group(function(){
             Route::get('streams', 'index');
-            Route::get('stream/{stream}', 'show');
+            Route::get('streams/{stream}', 'show');
         });
 
         // Route::controller(UserController::class)->group(function(){
