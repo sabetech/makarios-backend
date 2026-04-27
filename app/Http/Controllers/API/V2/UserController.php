@@ -10,9 +10,6 @@ class UserController extends BaseController
 {
     public function index() {
         $users = User::with(['roles', 'region', 'bacenta', 'overseenStreams'])
-            ->whereHas('roles', function($q) {
-                $q->whereIn('name', ['Super Admin', 'Bishop', 'Stream Lead', 'Region Lead', 'Bacenta Leader']);
-            })
             ->get()
             ->map(function($user) {
                 $userArray = $user->toArray();
