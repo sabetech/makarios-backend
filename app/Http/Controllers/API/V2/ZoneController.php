@@ -6,6 +6,7 @@ use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Zone;
 use Illuminate\Http\Request;
+use App\Models\Region;
 
 class ZoneController extends BaseController
 {
@@ -41,14 +42,20 @@ class ZoneController extends BaseController
         $request->validate([
             'name' => 'required|string|max:255',
             'region_id' => 'required|exists:regions,id',
-            'stream_id' => 'required|exists:streams,id',
         ]);
+
+        //infer the stream from the region
+        $region = Region::find($request->region_id);
+        if (!$region) {
+            return $this->sendError('Region not found', [], 404);
+        }
+        $stream = $region->stream;
 
         $zone = Zone::create([
             'name' => $request->name,
             'leader_id' => $request->leader_id ?? null,
             'region_id' => $request->region_id,
-            'stream_id' => $request->stream_id,
+            'stream_id' => $stream->id,
         ]);
 
         return $this->sendResponse($zone, 'Zone created successfully.');
