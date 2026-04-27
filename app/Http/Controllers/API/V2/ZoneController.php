@@ -6,7 +6,8 @@ use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Zone;
 use Illuminate\Http\Request;
-use App\Models\Region;
+use App\Models\User;
+
 
 class ZoneController extends BaseController
 {
