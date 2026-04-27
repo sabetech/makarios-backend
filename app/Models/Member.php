@@ -9,6 +9,8 @@ class Member extends Model
 {
     use HasFactory;
     protected $guarded = ['id'];
+    //only show the following fields when returning a member as json
+    protected $hidden = ['created_at', 'updated_at', 'deleted_at', 'user_id', 'church_id', 'zone_id', 'fellowship_id', 'fellowship_leader_id', 'laravel_through_key', 'micro_churches_id'];
 
     public function location() {
         return $this->hasOne(Location::class, 'location_id', 'id');

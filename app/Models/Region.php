@@ -4,17 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use \Illuminate\Database\Eloquent\SoftDeletes;
 class Region extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+    
 
     protected $fillable = [
-        'region',
+        'name',
         'leader_id',
         'assistant_id',
         'stream_id',
     ];
+
+    protected $hidden = ['created_at', 'updated_at', 'deleted_at'];
 
     public function leader() {
         return $this->belongsTo(User::class, 'leader_id', 'id');
@@ -35,6 +38,10 @@ class Region extends Model
     public function members(){
         $bacentaIds = $this->bacentas()->pluck('id')->toArray();
         return Member::whereIn('bacenta_id', $bacentaIds)->get();
+    }
+
+    public function membersThrough() {
+        return $this->hasManyThrough(Member::class, Bacenta::class, 'region_id', 'bacenta_id');
     }
 
     public function services(){

@@ -203,5 +203,25 @@ class MemberController extends BaseController
 
     }
 
+    public function show($id) {
+        $member = Member::with(['bacenta', 'region', 'stream'])->find($id);
 
+        if (!$member) {
+            return $this->sendError('Member not found.', ['error'=>'Member not found'], 404);
+        }
+
+        return $this->sendResponse($member, 'Member retrieved successfully.');
+    }
+
+    public function update(Request $request, $id) {
+        $member = Member::find($id);
+
+        if (!$member) {
+            return $this->sendError('Member not found.', ['error'=>'Member not found'], 404);
+        }
+
+        $member->update($request->all());
+
+        return $this->sendResponse($member, 'Member updated successfully.');
+    }
 }

@@ -192,8 +192,6 @@ class UserController extends BaseController
     public function getRoles() {
         $roles = Role::all();
 
-        Log::info("Roles: ", [$roles]);
-
         return $this->sendResponse($roles, 'Roles retrieved successfully.');
     }
 

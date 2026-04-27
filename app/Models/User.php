@@ -35,6 +35,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'created_at', 'updated_at', 'deleted_at'
     ];
 
     /**
@@ -66,6 +67,10 @@ class User extends Authenticatable
     public function region() {
 
         return $this->hasOne(Region::class, 'leader_id', 'id');
+    }
+
+    public function overseenStreams() {
+        return $this->hasMany(Stream::class, 'stream_overseer_id', 'id');
     }
 
     public function zone() {

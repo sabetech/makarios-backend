@@ -8,6 +8,8 @@ use App\Http\Controllers\API\V2\BacentaController;
 use App\Http\Controllers\API\V2\UserController;
 use App\Http\Controllers\API\V2\DashboardController;
 use App\Http\Controllers\API\V2\ServiceController;
+use App\Http\Controllers\API\V2\ZoneController;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -41,20 +43,36 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
 
     Route::middleware('role:Super Admin|Bishop')->group(function () {
         Route::controller(StreamController::class)->group(function(){
-        Route::get('streams', 'index');
-        Route::get('stream/{stream}', 'show');
+            Route::get('streams', 'index');
+            Route::get('stream/{stream}', 'show');
         });
+
+        // Route::controller(UserController::class)->group(function(){
+        //     Route::get('/users', 'index');
+        //     Route::post('/users', 'create');
+        //     Route::get('/roles', 'getRoles');
+        //     Route::post('/roles', 'createRole');
+        // });
     });
 
     Route::middleware('role:Super Admin|Bishop|Stream Lead|Region Lead')->group(function () {
         Route::controller(RegionController::class)->group(function(){
         Route::get('regions', 'index');
+        Route::get('regions/{id}', 'show');
+        Route::post('regions', 'create');
+        Route::put('regions/{id}', 'update');
+        Route::delete('regions/{id}', 'destroy');
+
+        Route::get('regions/{id}/bacentas', 'getBacentas');
+        Route::get('regions/{id}/members', 'getMembers');
+        Route::get('regions/{id}/services', 'getServices');
         });
     });
 
     Route::middleware('role:Super Admin|Bishop')->group(function () {
         Route::controller(UserController::class)->group(function(){
-        Route::get('leaders', 'index');
+            Route::get('leaders', 'index');
+            Route::get('/roles', 'getRoles');
         });
     });
 
@@ -64,9 +82,25 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         });
     });
 
+    Route::middleware('role:Super Admin|Bishop|Region Lead|Zone Lead')->group(function () {
+        Route::controller(ZoneController::class)->group(function(){
+            Route::get('zones', 'index');
+            Route::get('zone/{zone}', 'show');
+            Route::post('zone', 'create');
+            Route::put('zone/{zone}', 'update');
+            Route::delete('zone/{zone}', 'destroy');
+
+        });
+    });
+
     Route::middleware('role:Super Admin|Bishop|Region Lead|Bacenta Lead')->group(function () {
         Route::controller(BacentaController::class)->group(function(){
-        Route::get('bacentas', 'index');
+            Route::get('bacentas', 'index');
+            Route::put('bacentas/{bacenta}', 'update');
+            Route::get('bacentas/{bacenta}', 'show');
+            Route::post('bacentas', 'create');
+            Route::delete('bacentas/{bacenta}', 'destroy');
+
         });
     });
 

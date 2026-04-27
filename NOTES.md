@@ -126,10 +126,9 @@ ZONE
 TTU ZONE 4
 Akubia - Soteria  
 Savior - Shabach
-Tiokor - Komizo
 Michael- Victory
 Kojo A. - Miqdash
-Kofi Yebs - Yakol
+Cecil & Ella - Yakol
 =========================================================
 
 LP PRI
@@ -318,9 +317,11 @@ Rev William Odame
 Ps Nana Osei Bonsu
 ps Anthony Ackon
 
-
-
 ps Mark left with 3
 
 LP Jenn 
 ⁠Steven Bekoe should register
+
+Create a Region for Saved Church
+Zone: IChurch, YChurch, 
+Helpdesk Group (Admin)
