@@ -12,7 +12,7 @@ class BacentaController extends BaseController
     public function index() {
         $user = auth()->user();
 
-        $query = Bacenta::with(['leader', 'region.stream'])
+        $query = Bacenta::with(['leader', 'region.stream', 'zone'])
             ->withCount('members');
 
         if ($user->hasRole(['Super Admin', 'Bishop'])) {
