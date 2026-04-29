@@ -23,7 +23,7 @@ class DashboardController extends BaseController
             $counts['bacentas'] = Bacenta::count();
             $counts['members'] = Member::count();
             $counts['leaders'] = User::whereHas('roles', function($q) {
-                $q->whereIn('name', ['Super Admin', 'Bishop', 'Stream Lead', 'Region Lead', 'Bacenta Leader']);
+                $q->whereIn('name', ['Super Admin', 'Bishop', 'Stream Lead', 'Region Lead', 'Zone Lead', 'Bacenta Leader']);
             })->count();
         } elseif ($user->hasRole('Stream Lead')) {
             $counts['streams'] = Stream::count();
@@ -31,7 +31,7 @@ class DashboardController extends BaseController
             $counts['bacentas'] = Bacenta::count();
             $counts['members'] = Member::count();
             $counts['leaders'] = User::whereHas('roles', function($q) {
-                $q->whereIn('name', ['Stream Lead', 'Region Lead', 'Bacenta Leader']);
+                $q->whereIn('name', ['Stream Lead', 'Region Lead', 'Zone Lead', 'Bacenta Leader']);
             })->count();
         } elseif ($user->hasRole('Region Lead')) {
             $region = $user->region;
