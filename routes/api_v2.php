@@ -106,7 +106,9 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
 
     Route::middleware('role:Super Admin|Bishop|Stream Lead|Region Lead|Bacenta Lead')->group(function () {
         Route::controller(ServiceController::class)->group(function(){
-        Route::get('services', 'index');
+            Route::get('services', 'index');
+            Route::get('services/types', 'getTypes');
+            Route::post('services', 'create');
         });
     });
 

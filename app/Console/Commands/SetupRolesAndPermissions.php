@@ -56,6 +56,8 @@ class SetupRolesAndPermissions extends Command
         $regionLead = Role::firstOrCreate(['name' => 'Region Lead']);
         $regionAdmin = Role::firstOrCreate(['name' => 'Region Admin']);
 
+        $zoneLead = Role::firstOrCreate(['name' => 'Zone Lead']);
+
         $arrivalAdmin = Role::firstOrCreate(['name' => 'Arrival Admin']);
 
         $bacentaLeader = Role::firstOrCreate(['name' => 'Bacenta Leader']);
@@ -171,6 +173,8 @@ class SetupRolesAndPermissions extends Command
             'update bacentas',
             'delete bacentas',
         ]);
+
+
 
         $bacentaLeader->givePermissionTo([
             'view bacentas',

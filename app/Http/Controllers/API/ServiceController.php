@@ -45,7 +45,7 @@ class ServiceController extends BaseController
 
         Log::info(["Request:: " => $request->all()]);
 
-        $date = $request->get('date');
+        $date = $request->get('service_date');
         $serviceType = $request->get('service_type');
         $offering = $request->get('offering');
         $foreignCurrency = $request->get('foreign_currency');
