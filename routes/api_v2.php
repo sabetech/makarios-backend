@@ -5,6 +5,7 @@ use App\Http\Controllers\API\V2\AuthController;
 use App\Http\Controllers\API\V2\StreamController;
 use App\Http\Controllers\API\V2\RegionController;
 use App\Http\Controllers\API\V2\BacentaController;
+use App\Http\Controllers\API\V2\BasontaController;
 use App\Http\Controllers\API\V2\UserController;
 use App\Http\Controllers\API\V2\DashboardController;
 use App\Http\Controllers\API\V2\ServiceController;
@@ -93,7 +94,7 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         });
     });
 
-    Route::middleware('role:Super Admin|Bishop|Region Lead|Bacenta Lead')->group(function () {
+    Route::middleware('role:Super Admin|Bishop|Region Lead|Bacenta Leader')->group(function () {
         Route::controller(BacentaController::class)->group(function(){
             Route::get('bacentas', 'index');
             Route::put('bacentas/{bacenta}', 'update');
@@ -102,17 +103,18 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
             Route::delete('bacentas/{bacenta}', 'destroy');
 
         });
-    });
 
-    Route::middleware('role:Super Admin|Bishop|Stream Lead|Region Lead|Bacenta Lead')->group(function () {
-        Route::controller(ServiceController::class)->group(function(){
+         Route::controller(ServiceController::class)->group(function(){
             Route::get('services', 'index');
             Route::get('services/types', 'getTypes');
             Route::post('services', 'create');
         });
-    });
 
-    
+        Route::controller(BasontaController::class)->group(function(){
+            Route::get('basontas', 'index');
+        });
+
+    });
 
 
 });
