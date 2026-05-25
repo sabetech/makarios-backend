@@ -9,43 +9,69 @@ use App\Models\ServiceType;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Http\Request;
 
 class ServiceController extends BaseController
 {
     //
-    public function index(): JsonResponse {
-        // Get recent services
-        $services = Service::with('serviceType')->orderBy('created_at', 'desc')->take(5)->get();
+    public function index(Request $request): JsonResponse {
+        //get service type from param
+        $serviceTypeId = $request->get('service_type_id');
+        $from = $request->get('from');
+        $to = $request->get('to');
+
+        if ($serviceTypeId) {
+            $services = Service::with('serviceType')
+                ->where('service_type_id', $serviceTypeId)
+                ->orderBy('created_at', 'desc')
+                ->take(5);
+                
+        } else {
+            $services = Service::with('serviceType')
+                ->orderBy('created_at', 'desc')
+                ->take(5);
+        }
 
         //filter services based on user role
         $user = Auth::user();
         if ($user->hasRole(['Super Admin', 'Bishop'])) {
             // See all
-        } elseif ($user->hasRole('Stream Lead')) {
+        } 
+        if ($user->hasRole('Stream Lead')) {
             $services = $services->whereHas('stream', function($q) use ($user) {
-                $q->whereHas('leads', function($q2) use ($user) {
+                $q->whereHas('overseer', function($q2) use ($user) {
                     $q2->where('id', $user->id);
                 });
             });
-        } elseif ($user->hasRole('Region Lead')) {
+        } 
+        if ($user->hasRole('Region Lead')) {
             $services = $services->whereHas('region', function($q) use ($user) {
-                $q->whereHas('leads', function($q2) use ($user) {
+                $q->whereHas('leader', function($q2) use ($user) {
                     $q2->where('id', $user->id);
                 });
             });
-        } elseif ($user->hasRole('Bacenta Leader')) {
+        } 
+        if ($user->hasRole('Bacenta Leader')) {
             $services = $services->whereHas('bacenta', function($q) use ($user) {
-                $q->whereHas('leaders', function($q2) use ($user) {
+                $q->whereHas('leader', function($q2) use ($user) {
                     $q2->where('id', $user->id);
                 });
             });
-        } else {
-            return $this->sendError('Unauthorized', [], 403);
+        } 
+
+        if ($from && $to) {
+            $services = $services->whereBetween('date', [$from, $to]);
         }
+
+        
+
+        
+
+        
 
         return response()->json([
             'success' => true,
-            'data' => $services
+            'data' => $services->get()
         ]);
     }
 

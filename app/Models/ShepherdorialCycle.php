@@ -5,15 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Campaign extends Model
+class ShepherdorialCycle extends Model
 {
     use SoftDeletes;
 
     protected $guarded = ['id'];
     protected $hidden = ['created_at', 'updated_at', 'deleted_at'];
-
-    public function shepherdorialCycle()
-    {
-        return $this->belongsTo(ShepherdorialCycle::class);
-    }
 }

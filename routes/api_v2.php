@@ -10,6 +10,10 @@ use App\Http\Controllers\API\V2\UserController;
 use App\Http\Controllers\API\V2\DashboardController;
 use App\Http\Controllers\API\V2\ServiceController;
 use App\Http\Controllers\API\V2\ZoneController;
+use App\Http\Controllers\API\V2\CampaignController;
+use App\Http\Controllers\API\V2\AntibrutishController;
+use App\Http\Controllers\API\V2\SheepSheekingController;
+use App\Http\Controllers\API\V2\MultiplicationCampaignController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -112,6 +116,28 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
 
         Route::controller(BasontaController::class)->group(function(){
             Route::get('basontas', 'index');
+        });
+
+        Route::controller(CampaignController::class)->group(function(){
+            Route::get('campaigns', 'index');
+        });
+
+        Route::controller(AntibrutishController::class)->group(function(){
+            Route::post('antibrutish', 'store');
+            Route::get('antibrutish/leaders', 'leaderSummary');
+            Route::get('antibrutish/total-hours', 'totalHours');
+        });
+
+        Route::controller(SheepSheekingController::class)->group(function(){
+            Route::post('sheep-seeking', 'store');
+            Route::get('sheep-seeking', 'index');
+            Route::get('sheep-seeking/total-visits', 'totalVisits');
+        });
+
+        Route::controller(MultiplicationCampaignController::class)->group(function(){
+            Route::post('multiplication-campaigns', 'store');
+            Route::get('multiplication-campaigns', 'index');
+            Route::get('multiplication-campaigns/total-souls', 'totalSouls');
         });
 
     });
