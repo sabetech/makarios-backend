@@ -14,6 +14,7 @@ use App\Http\Controllers\API\V2\CampaignController;
 use App\Http\Controllers\API\V2\AntibrutishController;
 use App\Http\Controllers\API\V2\SheepSheekingController;
 use App\Http\Controllers\API\V2\MultiplicationCampaignController;
+use App\Http\Controllers\API\V2\ShepherdorialCycleController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +51,12 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         Route::controller(StreamController::class)->group(function(){
             Route::get('streams', 'index');
             Route::get('streams/{stream}', 'show');
+        });
+
+        Route::controller(ShepherdorialCycleController::class)->group(function(){
+            Route::get('shepherdorial-cycles', 'index');
+            Route::get('shepherdorial-cycles/{id}', 'show');
+            Route::post('shepherdorial-cycles', 'create');
         });
 
         // Route::controller(UserController::class)->group(function(){
