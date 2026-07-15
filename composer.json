@@ -10,6 +10,7 @@
         "google/apiclient": "^2.14",
         "laravel/framework": "^12.39",
         "laravel/sanctum": "^4.0",
+        "laravel/socialite": "^5.28",
         "laravel/tinker": "^2.9",
         "spatie/laravel-permission": "^6.9",
         "symfony/http-client": "^7.1",
