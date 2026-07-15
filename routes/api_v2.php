@@ -38,6 +38,7 @@ Route::get('/health', function (Request $request) {
 });
 
 Route::post('auth/google', [AuthController::class, 'googleAuth']);
+Route::post('auth/complete-profile', [AuthController::class, 'completeProfile'])->middleware(['auth:sanctum']);
 
 // TODO: Add v2-only endpoints here.k
 Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {

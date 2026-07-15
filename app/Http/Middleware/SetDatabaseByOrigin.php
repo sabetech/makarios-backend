@@ -28,7 +28,7 @@ class SetDatabaseByOrigin
 
         Log::info("Incoming request from origin: {$origin}");
 
-        $connection = $this->originConnectionMap[$origin] ?? 'mysql_wol'; // fallback to default
+        $connection = $this->originConnectionMap[$origin] ?? config('database.default');
 
         // Set the default connection for this request lifecycle
         DB::setDefaultConnection($connection);

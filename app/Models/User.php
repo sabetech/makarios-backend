@@ -25,6 +25,8 @@ class User extends Authenticatable
         'home_address',
         'password',
         'img_url',
+        'provider',
+        'provider_id',
     ];
 
     /**
