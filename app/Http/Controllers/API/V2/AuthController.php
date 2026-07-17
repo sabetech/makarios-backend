@@ -77,7 +77,7 @@ class AuthController extends BaseController
         $user->roles;
         $user->getPermissionsViaRoles();
         $user->isLeaderOf = $user->isLeaderOf();
-
+    
         $token = $user->createToken('makarios-pwa')->plainTextToken;
 
         $success = [

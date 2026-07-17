@@ -15,5 +15,6 @@ class ExampleTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200);
+        $response->assertHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     }
 }
