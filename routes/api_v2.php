@@ -91,7 +91,7 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::controller(DashboardController::class)->group(function(){
-        Route::get('dashboard', 'index');
+            Route::get('dashboard', 'index');
         });
     });
 

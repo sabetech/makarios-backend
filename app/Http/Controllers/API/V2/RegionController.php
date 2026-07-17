@@ -64,6 +64,25 @@ class RegionController extends BaseController
         return $this->sendResponse($region, 'Region retrieved successfully.');
     }
 
+    public function getBacentas($id) {
+        $region = Region::find($id);
+
+        if (!$region) {
+            return $this->sendError('Region not found', [], 404);
+        }
+
+        $bacentas = $region->bacentas()->with('leader')->get();
+
+        $bacentas->each(function ($bacenta) {
+            $bacenta->makeHidden(['zone_id', 'region_id', 'location_id', 'created_at', 'updated_at', 'deleted_at']);
+            if ($bacenta->leader) {
+                $bacenta->leader->makeHidden(['provider', 'provider_id', 'email_verified_at']);
+            }
+        });
+
+        return $this->sendResponse($bacentas, 'Bacentas retrieved successfully.');
+    }
+
     public function destroy($id) {
         $region = Region::find($id);
 
