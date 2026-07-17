@@ -55,6 +55,7 @@ class AuthController extends BaseController
 
             if ($isNewUser && empty($user->phone)) {
                 $isNewUser = true;
+                $user->assignRole('Bacenta Leader');
             } elseif ($isNewUser && !empty($user->phone)) {
                 $isNewUser = false;
             }
@@ -85,6 +86,10 @@ class AuthController extends BaseController
         try {
             $user = $request->user();
 
+            if (!$user) {
+                return $this->sendError('User not authenticated.', ['error' => 'No authenticated user found'], 401);
+            }
+
             $user->phone = $request->phone;
 
             if ($request->hasFile('image')) {
@@ -106,6 +111,7 @@ class AuthController extends BaseController
 
             $user->save();
 
+            //make the user a bacenta leader by default
             $user->roles;
             $user->getPermissionsViaRoles();
             $user->isLeaderOf = $user->isLeaderOf();
