@@ -24,7 +24,7 @@ class BacentaController extends BaseController
             } else {
                 return $this->sendError('No region assigned', [], 403);
             }
-        } elseif ($user->hasRole('Bacenta Lead')) {
+        } elseif ($user->hasRole('Bacenta Leader')) {
             $query->where('leader_id', $user->id);
         } else {
             return $this->sendError('Unauthorized', [], 403);
