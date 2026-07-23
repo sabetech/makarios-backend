@@ -15,6 +15,7 @@ use App\Http\Controllers\API\V2\AntibrutishController;
 use App\Http\Controllers\API\V2\SheepSheekingController;
 use App\Http\Controllers\API\V2\MultiplicationCampaignController;
 use App\Http\Controllers\API\V2\ShepherdorialCycleController;
+use App\Http\Controllers\API\V2\AttendanceController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -104,6 +105,13 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
             Route::delete('zones/{zone}', 'destroy');
 
         });
+    });
+
+    Route::controller(AttendanceController::class)->group(function(){
+        Route::post('attendance', 'store');
+        Route::get('attendance/member/{memberId}', 'memberHistory');
+        Route::get('attendance/members', 'membersWithSeverity');
+        Route::get('attendance/thresholds', 'thresholds');
     });
 
     Route::middleware('role:Super Admin|Bishop|Region Lead|Bacenta Leader')->group(function () {
