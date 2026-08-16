@@ -48,6 +48,8 @@ class MemberController extends BaseController {
             'bacenta.*' => 'integer|exists:bacentas,id',
         ]);
 
+        $bacenta = isset($validated['bacenta'][0]) ? Bacenta::find($validated['bacenta'][0]) : null;
+
         $data = [
             'name' => $validated['name'],
             'phone' => $validated['phone'] ?? null,
@@ -60,6 +62,7 @@ class MemberController extends BaseController {
             'address' => $validated['address'] ?? null,
             'bacenta_id' => isset($validated['bacenta'][0]) ? $validated['bacenta'][0] : null,
             'basonta_id' => isset($validated['basonta'][0]) ? $validated['basonta'][0] : null,
+            'stream_id' => $bacenta?->region?->stream_id,
         ];
 
         if (!empty($validated['picture'])) {

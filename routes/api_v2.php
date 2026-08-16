@@ -97,6 +97,13 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         });
     });
 
+    Route::middleware('role:Super Admin|Bishop|Stream Lead')->group(function () {
+        Route::controller(StreamController::class)->group(function(){
+            Route::get('streams/{stream}/bacentas', 'getBacentas');
+            Route::get('streams/{stream}/members', 'getMembers');
+        });
+    });
+
     Route::middleware('role:Super Admin|Bishop|Region Lead|Zone Lead')->group(function () {
         Route::controller(ZoneController::class)->group(function(){
             Route::get('zones', 'index');

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\API\V2;
 
+use App\Models\Bacenta;
+use App\Models\Member;
 use App\Models\Stream;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -48,6 +50,46 @@ class StreamController extends BaseController
         $regions = $stream->regions()->with('leader')->get();
 
         return $this->sendResponse($regions, 'Regions retrieved successfully.');
+    }
+
+    public function getMembers($id): JsonResponse
+    {
+        $stream = Stream::find($id);
+
+        if (!$stream) {
+            return $this->sendError('Stream not found.', ['error' => 'Stream not found'], 404);
+        }
+
+        $members = Member::where('stream_id', $stream->id)
+            ->with(['bacenta', 'zone', 'region'])
+            ->get();
+
+        return $this->sendResponse([
+            'total'   => $members->count(),
+            'members' => $members,
+        ], 'Members retrieved successfully.');
+    }
+
+    public function getBacentas($id): JsonResponse
+    {
+        $stream = Stream::find($id);
+
+        if (!$stream) {
+            return $this->sendError('Stream not found.', ['error'=>'Stream not found'], 404);
+        }
+
+        $bacentas = Bacenta::whereHas('region', fn($q) => $q->where('stream_id', $stream->id))
+            ->with('leader')
+            ->get();
+
+        $bacentas->each(function ($bacenta) {
+            $bacenta->makeHidden(['zone_id', 'region_id', 'location_id', 'created_at', 'updated_at', 'deleted_at']);
+            if ($bacenta->leader) {
+                $bacenta->leader->makeHidden(['provider', 'provider_id', 'email_verified_at']);
+            }
+        });
+
+        return $this->sendResponse($bacentas, 'Bacentas retrieved successfully.');
     }
 
     public function update($id): JsonResponse {
