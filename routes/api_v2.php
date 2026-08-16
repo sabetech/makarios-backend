@@ -42,6 +42,7 @@ Route::post('auth/complete-profile', [AuthController::class, 'completeProfile'])
 
 // TODO: Add v2-only endpoints here.k
 Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
+    Route::post('users/picture', [UserController::class, 'updatePicture']);
 
     Route::controller(MemberController::class)->group(function () {
         Route::get('members', 'index');
@@ -52,6 +53,7 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         Route::controller(StreamController::class)->group(function(){
             Route::get('streams', 'index');
             Route::get('streams/{stream}', 'show');
+            Route::get('streams/{stream}/regions', 'getRegions');
         });
 
         Route::controller(ShepherdorialCycleController::class)->group(function(){

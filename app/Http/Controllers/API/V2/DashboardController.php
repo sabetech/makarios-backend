@@ -51,7 +51,7 @@ class DashboardController extends BaseController
         } elseif ($user->hasRole('Bacenta Leader')) {
             $bacenta = $user->bacenta;
             if ($bacenta) {
-                $counts['bacentas'] = 1;
+                $counts['bacentas'] = Bacenta::where('leader_id', $user->id)->count();
                 $counts['members'] = Member::where('bacenta_id', $bacenta->id)->count();
                 $counts['leaders'] = 1;
             }

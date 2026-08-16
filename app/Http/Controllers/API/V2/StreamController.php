@@ -38,6 +38,18 @@ class StreamController extends BaseController
         return $this->sendResponse($stream, 'Stream retrieved successfully.');
     }
 
+    public function getRegions($id): JsonResponse {
+        $stream = Stream::find($id);
+
+        if (!$stream) {
+            return $this->sendError('Stream not found.', ['error'=>'Stream not found'], 404);
+        }
+
+        $regions = $stream->regions()->with('leader')->get();
+
+        return $this->sendResponse($regions, 'Regions retrieved successfully.');
+    }
+
     public function update($id): JsonResponse {
         $stream = Stream::find($id);
 

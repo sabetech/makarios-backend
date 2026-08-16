@@ -20,7 +20,7 @@ class BacentaController extends BaseController
         } elseif ($user->hasRole('Region Lead')) {
             $region = $user->region;
             if ($region) {
-                $query->where('region_id', $region->id);
+                $query->where('region_id', $region->id);    
             } else {
                 return $this->sendError('No region assigned', [], 403);
             }
