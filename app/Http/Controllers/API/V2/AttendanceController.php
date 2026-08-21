@@ -23,25 +23,26 @@ class AttendanceController extends BaseController
             'attendances.*.status' => 'required|in:present,absent',
         ]);
 
+        $user = Auth::user();
         $service = Service::findOrFail($data['service_id']);
 
-        foreach ($data['attendances'] as $attendance) {
-            $existing = MemberAttendance::where('member_id', $attendance['member_id'])
-                ->where('service_id', $data['service_id'])
-                ->first();
-
-            if ($existing) {
-                $existing->update(['status' => $attendance['status']]);
-            } else {
-                MemberAttendance::create([
-                    'member_id' => $attendance['member_id'],
-                    'service_id' => $data['service_id'],
-                    'status' => $attendance['status'],
-                ]);
-            }
+        if (!$this->canAccessService($user, $service)) {
+            return $this->sendError('Unauthorized', ['error' => 'You do not have access to this service.'], 403);
         }
 
-        $this->recalculateStreaks($data['attendances']);
+        DB::transaction(function () use ($data) {
+            foreach ($data['attendances'] as $attendance) {
+                MemberAttendance::updateOrCreate(
+                    [
+                        'member_id' => $attendance['member_id'],
+                        'service_id' => $data['service_id'],
+                    ],
+                    ['status' => $attendance['status']]
+                );
+            }
+
+            $this->recalculateStreaks($data['attendances']);
+        });
 
         return $this->sendResponse(null, 'Attendance recorded successfully.');
     }
@@ -98,13 +99,17 @@ class AttendanceController extends BaseController
 
         $members = Member::with(['bacenta', 'region', 'zone']);
 
+        // Explicit filters narrow the result set but NEVER widen it:
+        // role scope is always applied on top.
         if ($bacentaId) {
             $members->where('bacenta_id', $bacentaId);
-        } elseif ($regionId) {
-            $members->where('region_id', $regionId);
-        } else {
-            $members = $this->scopeMembersByRole($user, $members);
         }
+
+        if ($regionId) {
+            $members->where('region_id', $regionId);
+        }
+
+        $members = $this->applyRoleScope($members, $user);
 
         $members = $members->get()->map(function ($member) {
             $streak = $this->getCurrentStreak($member->id);
@@ -137,6 +142,13 @@ class AttendanceController extends BaseController
 
     public function serviceAttendance(int $serviceId): JsonResponse
     {
+        $service = Service::findOrFail($serviceId);
+        $user = Auth::user();
+
+        if (!$this->canAccessService($user, $service)) {
+            return $this->sendError('Unauthorized', ['error' => 'You do not have access to this service.'], 403);
+        }
+
         $attendance = MemberAttendance::where('service_id', $serviceId)
             ->get(['member_id', 'status']);
 
@@ -148,15 +160,11 @@ class AttendanceController extends BaseController
         $memberIds = collect($attendances)->pluck('member_id')->unique();
 
         foreach ($memberIds as $memberId) {
-            $streak = $this->getCurrentStreak($memberId);
+            $counter = 0;
 
             MemberAttendance::where('member_id', $memberId)
                 ->orderBy('id', 'desc')
-                ->each(function ($record) use ($streak, &$counter) {
-                    if (!isset($counter)) {
-                        $counter = 0;
-                    }
-
+                ->each(function ($record) use (&$counter) {
                     if ($record->status === 'absent') {
                         $counter++;
                         $record->update(['consecutive_absences' => $counter]);
@@ -198,7 +206,11 @@ class AttendanceController extends BaseController
         ] : null;
     }
 
-    private function scopeMembersByRole($user, $query)
+    /**
+     * Apply the signed-in user's visibility scope to a Member or Service query.
+     * Both tables share stream_id / region_id / zone_id / bacenta_id columns.
+     */
+    private function applyRoleScope($query, $user)
     {
         if ($user->hasRole(['Super Admin', 'Bishop'])) {
             return $query;
@@ -229,20 +241,45 @@ class AttendanceController extends BaseController
             return true;
         }
 
-        if ($user->hasRole('Stream Lead') && $user->stream) {
-            return $member->stream_id === $user->stream->id;
+        if ($user->hasRole('Stream Lead')) {
+            return $user->stream && $member->stream_id === $user->stream->id;
         }
 
-        if ($user->hasRole('Region Lead') && $user->region) {
-            return $member->region_id === $user->region->id;
+        if ($user->hasRole('Region Lead')) {
+            return $user->region && $member->region_id === $user->region->id;
         }
 
-        if ($user->hasRole('Zone Lead') && $user->zone) {
-            return $member->zone_id === $user->zone->id;
+        if ($user->hasRole('Zone Lead')) {
+            return $user->zone && $member->zone_id === $user->zone->id;
         }
 
-        if ($user->hasRole('Bacenta Leader') && $user->bacenta) {
-            return $member->bacenta_id === $user->bacenta->id;
+        if ($user->hasRole('Bacenta Leader')) {
+            return $user->bacenta && $member->bacenta_id === $user->bacenta->id;
+        }
+
+        return false;
+    }
+
+    private function canAccessService($user, $service): bool
+    {
+        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+            return true;
+        }
+
+        if ($user->hasRole('Stream Lead')) {
+            return $user->stream && $service->stream_id === $user->stream->id;
+        }
+
+        if ($user->hasRole('Region Lead')) {
+            return $user->region && $service->region_id === $user->region->id;
+        }
+
+        if ($user->hasRole('Zone Lead')) {
+            return $user->zone && $service->zone_id === $user->zone->id;
+        }
+
+        if ($user->hasRole('Bacenta Leader')) {
+            return $user->bacenta && $service->bacenta_id === $user->bacenta->id;
         }
 
         return false;
