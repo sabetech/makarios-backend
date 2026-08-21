@@ -11,6 +11,7 @@ class MemberAttendance extends Model
 
     protected $guarded = ['id'];
     protected $hidden = ['created_at', 'updated_at'];
+    protected $table = 'member_attendance';
 
     public function member()
     {
