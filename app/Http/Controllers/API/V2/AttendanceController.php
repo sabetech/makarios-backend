@@ -135,6 +135,14 @@ class AttendanceController extends BaseController
         return $this->sendResponse($thresholds, 'Severity thresholds retrieved successfully.');
     }
 
+    public function serviceAttendance(int $serviceId): JsonResponse
+    {
+        $attendance = MemberAttendance::where('service_id', $serviceId)
+            ->get(['member_id', 'status']);
+
+        return $this->sendResponse($attendance, 'Service attendance retrieved successfully.');
+    }
+
     private function recalculateStreaks(array $attendances): void
     {
         $memberIds = collect($attendances)->pluck('member_id')->unique();

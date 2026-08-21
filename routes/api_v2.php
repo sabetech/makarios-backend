@@ -112,6 +112,7 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         Route::get('attendance/member/{memberId}', 'memberHistory');
         Route::get('attendance/members', 'membersWithSeverity');
         Route::get('attendance/thresholds', 'thresholds');
+        Route::get('attendance/service/{serviceId}', 'serviceAttendance');
     });
 
     Route::middleware('role:Super Admin|Bishop|Region Lead|Bacenta Leader')->group(function () {
