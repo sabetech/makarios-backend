@@ -39,6 +39,17 @@ class AttendanceDemoSeeder extends Seeder
         );
         $bishop->assignRole('Bishop');
 
+        // Super Admin (full access incl. admin portal)
+        $superAdmin = User::firstOrCreate(
+            ['email' => 'superadmin@makarios.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => bcrypt('password'),
+                'img_url' => 'https://ui-avatars.com/api/?name=Super+Admin&background=580B1E&color=fff',
+            ]
+        );
+        $superAdmin->assignRole('Super Admin');
+
         // Second bacenta leader (for testing cross-bacenta scoping)
         $faithLeader = User::firstOrCreate(
             ['email' => 'faith@makarios.com'],
