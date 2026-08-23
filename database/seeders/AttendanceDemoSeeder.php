@@ -50,6 +50,17 @@ class AttendanceDemoSeeder extends Seeder
         );
         $faithLeader->assignRole('Bacenta Leader');
 
+        // Region Lead (for testing region-wide visibility)
+        $regionLead = User::firstOrCreate(
+            ['email' => 'regionlead@makarios.com'],
+            [
+                'name' => 'Region Lead',
+                'password' => bcrypt('password'),
+                'img_url' => 'https://ui-avatars.com/api/?name=Region+Lead&background=580B1E&color=fff',
+            ]
+        );
+        $regionLead->assignRole('Region Lead');
+
         // 4. Create church hierarchy
         $church = Church::create(['name' => 'Makarios Church']);
         $stream = Stream::create([
@@ -62,7 +73,7 @@ class AttendanceDemoSeeder extends Seeder
 
         $region = Region::create([
             'name' => 'Region Alpha',
-            'leader_id' => $bishop->id,
+            'leader_id' => $regionLead->id,
             'stream_id' => $stream->id,
         ]);
 
