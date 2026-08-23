@@ -39,6 +39,17 @@ class AttendanceDemoSeeder extends Seeder
         );
         $bishop->assignRole('Bishop');
 
+        // Second bacenta leader (for testing cross-bacenta scoping)
+        $faithLeader = User::firstOrCreate(
+            ['email' => 'faith@makarios.com'],
+            [
+                'name' => 'Faith Leader',
+                'password' => bcrypt('password'),
+                'img_url' => 'https://ui-avatars.com/api/?name=Faith+Leader&background=580B1E&color=fff',
+            ]
+        );
+        $faithLeader->assignRole('Bacenta Leader');
+
         // 4. Create church hierarchy
         $church = Church::create(['name' => 'Makarios Church']);
         $stream = Stream::create([
@@ -72,10 +83,10 @@ class AttendanceDemoSeeder extends Seeder
             'name' => 'Bacenta Faith',
             'region_id' => $region->id,
             'zone_id' => $zone->id,
-            'leader_id' => $bishop->id,
+            'leader_id' => $faithLeader->id,
         ]);
 
-        // Link user to bacenta via users_church_info
+        // Link leaders to their bacentas via users_church_info
         UserChurchInfo::create([
             'user_id' => $user->id,
             'church_id' => $church->id,
@@ -83,6 +94,15 @@ class AttendanceDemoSeeder extends Seeder
             'region_id' => $region->id,
             'zone_id' => $zone->id,
             'bacenta_id' => $bacenta->id,
+        ]);
+
+        UserChurchInfo::create([
+            'user_id' => $faithLeader->id,
+            'church_id' => $church->id,
+            'stream_id' => $stream->id,
+            'region_id' => $region->id,
+            'zone_id' => $zone->id,
+            'bacenta_id' => $bacenta2->id,
         ]);
 
         // 5. Create service type
@@ -173,22 +193,26 @@ class AttendanceDemoSeeder extends Seeder
             }
         }
 
-        // 9. Calculate and update consecutive absences
+        // 9. Calculate and update consecutive absences (chronological order by service date)
         foreach ($members as $member) {
-            $records = MemberAttendance::where('member_id', $member->id)
-                ->orderBy('id', 'desc')
+            $records = MemberAttendance::join('services', 'services.id', '=', 'member_attendance.service_id')
+                ->where('member_attendance.member_id', $member->id)
+                ->select('member_attendance.*')
+                ->orderBy('services.date')
                 ->get();
 
             $counter = 0;
             foreach ($records as $record) {
                 if ($record->status === 'absent') {
                     $counter++;
-                    $record->update(['consecutive_absences' => $counter]);
                 } else {
                     $counter = 0;
-                    $record->update(['consecutive_absences' => 0]);
                 }
+                $record->update(['consecutive_absences' => $counter]);
             }
+
+            // Cache the current streak on the member record
+            $member->update(['current_consecutive_absences' => $counter]);
         }
 
         // 10. Seed severity thresholds

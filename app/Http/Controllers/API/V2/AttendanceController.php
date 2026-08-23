@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 
 class AttendanceController extends BaseController
 {
@@ -41,7 +42,9 @@ class AttendanceController extends BaseController
                 );
             }
 
-            $this->recalculateStreaks($data['attendances']);
+            collect($data['attendances'])->pluck('member_id')
+                ->unique()
+                ->each(fn ($memberId) => $this->recalculateMemberStreaks($memberId));
         });
 
         return $this->sendResponse(null, 'Attendance recorded successfully.');
@@ -61,31 +64,31 @@ class AttendanceController extends BaseController
             return $this->sendError('Unauthorized', ['error' => 'You do not have access to this member.'], 403);
         }
 
-        $history = MemberAttendance::with('service')
-            ->where('member_id', $memberId)
-            ->orderBy('id', 'desc');
+        $history = MemberAttendance::query()
+            ->join('services', 'services.id', '=', 'member_attendance.service_id')
+            ->where('member_attendance.member_id', $memberId)
+            ->select('member_attendance.*')
+            ->with('service')
+            ->orderByDesc('services.date');
 
         if ($request->filled('from')) {
-            $history->whereHas('service', function ($q) use ($request) {
-                $q->where('date', '>=', $request->from);
-            });
+            $history->where('services.date', '>=', $request->from);
         }
 
         if ($request->filled('to')) {
-            $history->whereHas('service', function ($q) use ($request) {
-                $q->where('date', '<=', $request->to);
-            });
+            $history->where('services.date', '<=', $request->to);
         }
 
-        $currentStreak = $this->getCurrentStreak($memberId);
-        $severity = $this->getSeverityForStreak($currentStreak);
+        $currentStreak = (int) $member->current_consecutive_absences;
 
         return $this->sendResponse([
             'member' => [
                 'id' => $member->id,
                 'name' => $member->name,
                 'consecutive_absences' => $currentStreak,
-                'severity' => $severity,
+                'severity' => $this->resolveSeverity(
+                    AttendanceSeverityThreshold::forStreak($currentStreak)->first()
+                ),
             ],
             'history' => $history->get(),
         ], 'Member attendance history retrieved successfully.');
@@ -96,11 +99,12 @@ class AttendanceController extends BaseController
         $user = Auth::user();
         $bacentaId = $request->get('bacenta_id');
         $regionId = $request->get('region_id');
-
-        $members = Member::with(['bacenta', 'region', 'zone']);
+        $sortDescByStreak = $request->get('sort', 'severity') === 'severity';
 
         // Explicit filters narrow the result set but NEVER widen it:
         // role scope is always applied on top.
+        $members = Member::with(['bacenta', 'region', 'zone']);
+
         if ($bacentaId) {
             $members->where('bacenta_id', $bacentaId);
         }
@@ -111,9 +115,15 @@ class AttendanceController extends BaseController
 
         $members = $this->applyRoleScope($members, $user);
 
-        $members = $members->get()->map(function ($member) {
-            $streak = $this->getCurrentStreak($member->id);
-            $severity = $this->getSeverityForStreak($streak);
+        if ($sortDescByStreak) {
+            $members->orderByDesc('members.current_consecutive_absences');
+        }
+
+        // Single query + in-memory threshold resolution: no per-member queries.
+        $thresholds = AttendanceSeverityThreshold::orderBy('min_absences')->get();
+
+        $result = $members->get()->map(function ($member) use ($thresholds) {
+            $streak = (int) $member->current_consecutive_absences;
 
             return [
                 'id' => $member->id,
@@ -122,16 +132,11 @@ class AttendanceController extends BaseController
                 'region' => $member->region,
                 'zone' => $member->zone,
                 'consecutive_absences' => $streak,
-                'severity' => $severity,
+                'severity' => $this->resolveSeverityFromCollection($thresholds, $streak),
             ];
-        });
+        })->values();
 
-        $sortBy = $request->get('sort', 'severity');
-        if ($sortBy === 'severity') {
-            $members = $members->sortByDesc('consecutive_absences')->values();
-        }
-
-        return $this->sendResponse($members, 'Members with severity retrieved successfully.');
+        return $this->sendResponse($result, 'Members with severity retrieved successfully.');
     }
 
     public function thresholds(): JsonResponse
@@ -155,55 +160,67 @@ class AttendanceController extends BaseController
         return $this->sendResponse($attendance, 'Service attendance retrieved successfully.');
     }
 
-    private function recalculateStreaks(array $attendances): void
+    /**
+     * Recalculate the stored running counts for every attendance record of a
+     * member, plus the cached current streak on the member record.
+     *
+     * Records are processed in CHRONOLOGICAL order by service date (not id),
+     * so backdated services are handled correctly. Each record's
+     * consecutive_absences value is the streak length ending at that service.
+     */
+    private function recalculateMemberStreaks(int $memberId): void
     {
-        $memberIds = collect($attendances)->pluck('member_id')->unique();
+        $records = $this->memberRecordsByServiceDate($memberId)->get();
 
-        foreach ($memberIds as $memberId) {
-            $counter = 0;
+        $counter = 0;
+        foreach ($records as $record) {
+            if ($record->status === 'absent') {
+                $counter++;
+            } else {
+                $counter = 0;
+            }
 
-            MemberAttendance::where('member_id', $memberId)
-                ->orderBy('id', 'desc')
-                ->each(function ($record) use (&$counter) {
-                    if ($record->status === 'absent') {
-                        $counter++;
-                        $record->update(['consecutive_absences' => $counter]);
-                    } else {
-                        $counter = 0;
-                        $record->update(['consecutive_absences' => 0]);
-                    }
-                });
+            if ((int) $record->consecutive_absences !== $counter) {
+                $record->consecutive_absences = $counter;
+                $record->save();
+            }
         }
+
+        Member::where('id', $memberId)
+            ->update(['current_consecutive_absences' => $counter]);
     }
 
-    private function getCurrentStreak(int $memberId): int
+    private function memberRecordsByServiceDate(int $memberId)
     {
-        $latestPresent = MemberAttendance::where('member_id', $memberId)
-            ->where('status', 'present')
-            ->latest('id')
-            ->first();
-
-        $query = MemberAttendance::where('member_id', $memberId);
-
-        if ($latestPresent) {
-            $query->where('id', '>', $latestPresent->id);
-        }
-
-        return $query->where('status', 'absent')->count();
+        return MemberAttendance::query()
+            ->join('services', 'services.id', '=', 'member_attendance.service_id')
+            ->where('member_attendance.member_id', $memberId)
+            ->select('member_attendance.*')
+            ->orderBy('services.date')
+            ->orderBy('member_attendance.id');
     }
 
-    private function getSeverityForStreak(int $streak): ?array
+    private function resolveSeverity(?AttendanceSeverityThreshold $threshold): ?array
     {
-        $threshold = AttendanceSeverityThreshold::forStreak($streak)->first();
-
-        if (!$threshold) {
-            $threshold = AttendanceSeverityThreshold::orderByDesc('min_absences')->first();
-        }
-
         return $threshold ? [
             'label' => $threshold->label,
             'color' => $threshold->color,
         ] : null;
+    }
+
+    private function resolveSeverityFromCollection(Collection $thresholds, int $streak): ?array
+    {
+        $threshold = $thresholds->first(
+            fn ($t) => $t->min_absences <= $streak
+                && (is_null($t->max_absences) || $t->max_absences >= $streak)
+        );
+
+        // Fallback: streak beyond all ranges maps to the highest threshold
+        if (!$threshold) {
+            $threshold = $thresholds->sortByDesc('min_absences')->first();
+        }
+
+        return $this->resolveSeverity($threshold);
     }
 
     /**
