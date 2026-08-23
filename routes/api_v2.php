@@ -122,9 +122,17 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
             Route::get('bacentas', 'index');
             Route::put('bacentas/{bacenta}', 'update');
             Route::get('bacentas/{bacenta}', 'show');
+            Route::get('bacentas/{bacenta}/members', 'members');
             Route::post('bacentas', 'create');
             Route::delete('bacentas/{bacenta}', 'destroy');
 
+        });
+
+        Route::middleware('role:Super Admin|Bishop|Region Lead')->group(function () {
+            Route::controller(BacentaController::class)->group(function(){
+                Route::post('bacentas/{bacenta}/suspend', 'suspend');
+                Route::post('bacentas/{bacenta}/activate', 'activate');
+            });
         });
 
          Route::controller(ServiceController::class)->group(function(){

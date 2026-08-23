@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\{User, Church, Stream, Region, Zone, Bacenta, Member, Service, ServiceType, MemberAttendance, UserChurchInfo};
+use App\Models\{User, Church, Stream, Region, Zone, Bacenta, Member, Service, ServiceType, MemberAttendance, UserChurchInfo, Location};
 use Spatie\Permission\Models\Role;
 use Carbon\Carbon;
 
@@ -83,11 +83,18 @@ class AttendanceDemoSeeder extends Seeder
             'leader_id' => $bishop->id,
         ]);
 
+        $location = Location::create([
+            'name' => 'Grace Community Hall',
+            'lat_lng' => '5.6037,-0.1870',
+            'address' => '12 Independence Ave, Accra',
+        ]);
+
         $bacenta = Bacenta::create([
             'name' => 'Bacenta Grace',
             'region_id' => $region->id,
             'zone_id' => $zone->id,
             'leader_id' => $user->id,
+            'location_id' => $location->id,
         ]);
 
         $bacenta2 = Bacenta::create([
