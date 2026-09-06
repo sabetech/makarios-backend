@@ -67,5 +67,99 @@ class BacentaController extends BaseController
         $bacenta = Bacenta::create($request->only(['name', 'leader_id', 'zone_id', 'region_id']));
 
         return $this->sendResponse($bacenta, 'Bacenta created successfully.');
-    }   
+    }
+
+    public function show($id)
+    {
+        [$bacenta, $error] = $this->getAccessibleBacenta($id);
+        if ($error) {
+            return $error;
+        }
+
+        $recentServices = $bacenta->services()
+            ->orderByDesc('date')
+            ->limit(4)
+            ->get(['id', 'bacenta_id', 'date', 'attendance', 'offering']);
+
+        $bacenta->setRelation('recent_services', $recentServices);
+
+        return $this->sendResponse($bacenta->load(['leader', 'zone', 'region.stream', 'location'])->loadCount('members'), 'Bacenta retrieved successfully.');
+    }
+
+    public function members(Request $request, $id)
+    {
+        [$bacenta, $error] = $this->getAccessibleBacenta($id);
+        if ($error) {
+            return $error;
+        }
+
+        $members = $bacenta->members()
+            ->orderBy('name')
+            ->get();
+
+        return $this->sendResponse($members, 'Bacenta members retrieved successfully.');
+    }
+
+    public function suspend($id)
+    {
+        return $this->setActiveState($id, false, 'Bacenta suspended successfully.');
+    }
+
+    public function activate($id)
+    {
+        return $this->setActiveState($id, true, 'Bacenta activated successfully.');
+    }
+
+    private function setActiveState($id, bool $active, string $message)
+    {
+        $user = auth()->user();
+        $bacenta = Bacenta::find($id);
+        if (!$bacenta) {
+            return $this->sendError('Bacenta not found', [], 404);
+        }
+
+        if ($user->hasRole('Region Lead') && (!$user->region || $bacenta->region_id !== $user->region->id)) {
+            return $this->sendError('Unauthorized', ['error' => 'You can only manage bacentas in your region.'], 403);
+        }
+
+        $bacenta->update(['is_active' => $active]);
+
+        return $this->sendResponse($bacenta, $message);
+    }
+
+    /**
+     * Resolve a bacenta the current user may view, following the same
+     * scoping rules as index().
+     *
+     * @return array{0: Bacenta|null, 1: \Illuminate\Http\JsonResponse|null}
+     */
+    private function getAccessibleBacenta($id): array
+    {
+        $user = auth()->user();
+        $bacenta = Bacenta::find($id);
+
+        if (!$bacenta) {
+            return [null, $this->sendError('Bacenta not found', [], 404)];
+        }
+
+        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+            return [$bacenta, null];
+        }
+
+        if ($user->hasRole('Region Lead')) {
+            if ($user->region && $bacenta->region_id === $user->region->id) {
+                return [$bacenta, null];
+            }
+            return [null, $this->sendError('Unauthorized', ['error' => 'You do not have access to this bacenta.'], 403)];
+        }
+
+        if ($user->hasRole('Bacenta Leader')) {
+            if ($bacenta->leader_id === $user->id) {
+                return [$bacenta, null];
+            }
+            return [null, $this->sendError('Unauthorized', ['error' => 'You do not have access to this bacenta.'], 403)];
+        }
+
+        return [null, $this->sendError('Unauthorized', [], 403)];
+    }
 }

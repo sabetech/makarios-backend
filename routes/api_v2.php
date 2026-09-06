@@ -15,6 +15,7 @@ use App\Http\Controllers\API\V2\AntibrutishController;
 use App\Http\Controllers\API\V2\SheepSheekingController;
 use App\Http\Controllers\API\V2\MultiplicationCampaignController;
 use App\Http\Controllers\API\V2\ShepherdorialCycleController;
+use App\Http\Controllers\API\V2\AttendanceController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -115,14 +116,32 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         });
     });
 
+    Route::middleware('role:Super Admin|Bishop|Stream Lead|Region Lead|Zone Lead|Bacenta Leader')->group(function () {
+        Route::controller(AttendanceController::class)->group(function(){
+            Route::post('attendance', 'store');
+            Route::get('attendance/member/{memberId}', 'memberHistory');
+            Route::get('attendance/members', 'membersWithSeverity');
+            Route::get('attendance/thresholds', 'thresholds');
+            Route::get('attendance/service/{serviceId}', 'serviceAttendance');
+        });
+    });
+
     Route::middleware('role:Super Admin|Bishop|Region Lead|Bacenta Leader')->group(function () {
         Route::controller(BacentaController::class)->group(function(){
             Route::get('bacentas', 'index');
             Route::put('bacentas/{bacenta}', 'update');
             Route::get('bacentas/{bacenta}', 'show');
+            Route::get('bacentas/{bacenta}/members', 'members');
             Route::post('bacentas', 'create');
             Route::delete('bacentas/{bacenta}', 'destroy');
 
+        });
+
+        Route::middleware('role:Super Admin|Bishop|Region Lead')->group(function () {
+            Route::controller(BacentaController::class)->group(function(){
+                Route::post('bacentas/{bacenta}/suspend', 'suspend');
+                Route::post('bacentas/{bacenta}/activate', 'activate');
+            });
         });
 
          Route::controller(ServiceController::class)->group(function(){

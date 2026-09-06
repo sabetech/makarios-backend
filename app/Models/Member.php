@@ -32,4 +32,8 @@ class Member extends Model
         return $this->belongsTo(Stream::class, 'stream_id', 'id');
     }
 
+    public function attendance() {
+        return $this->hasMany(MemberAttendance::class);
+    }
+
 }
