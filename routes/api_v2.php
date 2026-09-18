@@ -16,6 +16,7 @@ use App\Http\Controllers\API\V2\SheepSheekingController;
 use App\Http\Controllers\API\V2\MultiplicationCampaignController;
 use App\Http\Controllers\API\V2\ShepherdorialCycleController;
 use App\Http\Controllers\API\V2\AttendanceController;
+use App\Http\Controllers\API\V2\ArrivalController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -174,6 +175,11 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
             Route::post('multiplication-campaigns', 'store');
             Route::get('multiplication-campaigns', 'index');
             Route::get('multiplication-campaigns/total-souls', 'totalSouls');
+        });
+
+        Route::controller(ArrivalController::class)->group(function(){
+            Route::get('arrivals', 'index');
+            Route::post('arrivals', 'store');
         });
 
     });
