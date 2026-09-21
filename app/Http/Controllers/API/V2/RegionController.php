@@ -3,8 +3,14 @@
 namespace App\Http\Controllers\API\V2;
 
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\Bacenta;
+use App\Models\Member;
+use App\Models\MicroChurch;
 use App\Models\Region;
+use App\Models\Service;
+use App\Models\Stream;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class RegionController extends BaseController
@@ -81,6 +87,56 @@ class RegionController extends BaseController
         });
 
         return $this->sendResponse($bacentas, 'Bacentas retrieved successfully.');
+    }
+
+    public function transfer(Request $request, $id) {
+        $request->validate([
+            'stream_id' => 'required|exists:streams,id',
+        ]);
+
+        $region = Region::find($id);
+        if (!$region) {
+            return $this->sendError('Region not found', [], 404);
+        }
+
+        $destinationId = (int) $request->stream_id;
+        if ((int) $region->stream_id === $destinationId) {
+            return $this->sendError('Region is already in this stream.', [], 422);
+        }
+
+        $destination = Stream::find($destinationId);
+
+        $bacentaIds = Bacenta::where('region_id', $region->id)->pluck('id')->toArray();
+
+        $counts = DB::transaction(function () use ($region, $destinationId, $bacentaIds) {
+            $region->update(['stream_id' => $destinationId]);
+
+            // Bacentas and zones follow automatically via region_id
+            // (zones resolve their stream through the region).
+            $membersUpdated = 0;
+            if (!empty($bacentaIds)) {
+                $membersUpdated = Member::whereIn('bacenta_id', $bacentaIds)
+                    ->update(['stream_id' => $destinationId]);
+            }
+            $servicesUpdated = Service::where('region_id', $region->id)
+                ->update(['stream_id' => $destinationId]);
+            $microChurchesUpdated = MicroChurch::where('region_id', $region->id)
+                ->update(['stream_id' => $destinationId]);
+
+            return [
+                'members_updated' => $membersUpdated,
+                'services_updated' => $servicesUpdated,
+                'microchurches_updated' => $microChurchesUpdated,
+            ];
+        });
+
+        return $this->sendResponse([
+            'region' => $region->fresh()->load(['leader', 'stream']),
+            'from_stream_id' => (int) $region->getOriginal('stream_id'),
+            'to_stream' => $destination,
+            'bacentas_moved' => count($bacentaIds),
+            ...$counts,
+        ], 'Region transferred successfully.');
     }
 
     public function destroy($id) {

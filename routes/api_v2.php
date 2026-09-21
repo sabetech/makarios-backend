@@ -54,6 +54,7 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
     Route::middleware('role:Super Admin|Bishop')->group(function () {
         Route::controller(StreamController::class)->group(function(){
             Route::get('streams', 'index');
+            Route::post('streams', 'create');
             Route::get('streams/{stream}', 'show');
             Route::get('streams/{stream}/regions', 'getRegions');
         });
@@ -84,6 +85,14 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         Route::get('regions/{id}/members', 'getMembers');
         Route::get('regions/{id}/services', 'getServices');
         });
+
+        // Region transfers rewrite denormalized stream copies across the
+        // region's members, services and micro-churches: Super Admin/Bishop only.
+        Route::middleware('role:Super Admin|Bishop')->group(function () {
+            Route::controller(RegionController::class)->group(function(){
+                Route::post('regions/{id}/transfer', 'transfer');
+            });
+        });
     });
 
     Route::middleware('role:Super Admin|Bishop')->group(function () {
@@ -96,6 +105,7 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::controller(DashboardController::class)->group(function(){
             Route::get('dashboard', 'index');
+            Route::get('dashboard/summary', 'summary');
         });
     });
 

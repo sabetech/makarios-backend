@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\API\V2;
 
 use App\Models\Bacenta;
+use App\Models\Church;
 use App\Models\Member;
 use App\Models\Stream;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\API\BaseController as BaseController;
 
@@ -90,6 +93,51 @@ class StreamController extends BaseController
         });
 
         return $this->sendResponse($bacentas, 'Bacentas retrieved successfully.');
+    }
+
+    public function create(Request $request): JsonResponse {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'meeting_day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+            'meeting_time' => 'required|date_format:H:i',
+            'overseer_id' => 'nullable|exists:users,id',
+        ]);
+
+        $user = Auth::user();
+
+        // Single-church setup: attach the stream to the church the user
+        // heads, falling back to the user's own church, then the first church.
+        $church = Church::where('head_pastor_id', $user->id)->first();
+        if (!$church && !empty($user->church_id)) {
+            $church = Church::find($user->church_id);
+        }
+        if (!$church) {
+            $church = Church::first();
+        }
+        if (!$church) {
+            return $this->sendError('No church found to attach the stream to.', [], 422);
+        }
+
+        $overseer = null;
+        if ($request->filled('overseer_id')) {
+            $overseer = User::find($request->overseer_id);
+            if ($overseer && !$overseer->hasRole('Stream Lead')) {
+                $overseer->assignRole('Stream Lead');
+            }
+        }
+
+        $stream = Stream::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'meeting_day' => $request->meeting_day,
+            'meeting_time' => $request->meeting_time,
+            'church_id' => $church->id,
+            'stream_overseer_id' => $overseer?->id,
+            'is_active' => true,
+        ]);
+
+        return $this->sendResponse($stream->load(['overseer', 'church']), 'Stream created successfully.');
     }
 
     public function update($id): JsonResponse {
