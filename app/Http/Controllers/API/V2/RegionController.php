@@ -27,7 +27,7 @@ class RegionController extends BaseController
 
         if ($user->hasRole('Region Lead')) {
             $query->where('leader_id', $user->id);
-        } elseif (!$user->hasRole(['Super Admin', 'Bishop', 'Stream Leader'])) {
+        } elseif (!$user->hasRole(['Super Admin', 'General Admin', 'Bishop', 'Stream Leader'])) {
             return $this->sendError('Unauthorized', [], 403);
         }
 

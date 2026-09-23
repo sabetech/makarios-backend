@@ -20,7 +20,7 @@ class ZoneController extends BaseController
         $user = Auth::user();
         $roles = $user->roles->pluck('name')->toArray();
 
-        if (in_array('Super Admin', $roles) || in_array('Bishop', $roles)) {
+        if (in_array('Super Admin', $roles) || in_array('General Admin', $roles) || in_array('Bishop', $roles)) {
             $zones = Zone::with(['region', 'stream', 'bacentas', 'leader'])->get();
         } elseif (in_array('Region Lead', $roles)) {
             $zones = Zone::with(['region', 'stream', 'leader', 'bacentas'])->whereHas('region', function($q) use ($user) {

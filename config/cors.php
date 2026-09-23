@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => explode(',', env('FRONTEND_URLS', 'https://admin.makarios-church.org,https://western-north.makarios-church.org')),
+    'allowed_origins' => explode(',', env('FRONTEND_URLS', 'https://admin.makarios-church.org,https://western-north.makarios-church.org,http://localhost:5173')),
 
     'allowed_origins_patterns' => [],
 

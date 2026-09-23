@@ -51,6 +51,44 @@ class UserController extends BaseController
         return $this->sendResponse($roles, 'Roles retrieved successfully.');
     }
 
+    public function updateRole(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'role' => 'required|string|exists:roles,name',
+        ]);
+
+        $user = User::find($id);
+        if (!$user) {
+            return $this->sendError('User not found.', ['error' => 'User not found'], 404);
+        }
+
+        // Replace (not accumulate): the codebase reads the user's first role
+        // everywhere, so stacking roles would leave stale leadership behavior.
+        $user->syncRoles([$request->role]);
+
+        return $this->sendResponse($user->fresh()->load('roles'), 'User role updated successfully.');
+    }
+
+    public function destroy($id): JsonResponse
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return $this->sendError('User not found.', ['error' => 'User not found'], 404);
+        }
+
+        if (auth()->id() === $user->id) {
+            return $this->sendError('You cannot delete your own account.', [], 403);
+        }
+
+        // Soft delete: the row (and its role assignments) is kept, so
+        // regions/bacentas led by this user keep referential integrity and
+        // the account can be restored. Trashed users are excluded from
+        // listings and cannot log in via the default Eloquent queries.
+        $user->delete();
+
+        return $this->sendResponse(null, 'User deleted successfully.');
+    }
+
     public function updatePicture(Request $request): JsonResponse
     {
         $request->validate([

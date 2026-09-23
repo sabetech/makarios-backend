@@ -15,7 +15,7 @@ class BacentaController extends BaseController
         $query = Bacenta::with(['leader', 'region.stream', 'zone'])
             ->withCount('members');
 
-        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
             // See all
         } elseif ($user->hasRole('Region Lead')) {
             $region = $user->region;
@@ -142,7 +142,7 @@ class BacentaController extends BaseController
             return [null, $this->sendError('Bacenta not found', [], 404)];
         }
 
-        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
             return [$bacenta, null];
         }
 

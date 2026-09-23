@@ -19,14 +19,14 @@ class DashboardController extends BaseController
         $user = auth()->user();
         $counts = [];
 
-        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
             $counts['churches'] = Church::count();
             $counts['streams'] = Stream::count();
             $counts['regions'] = Region::count();
             $counts['bacentas'] = Bacenta::count();
             $counts['members'] = Member::count();
             $counts['leaders'] = User::whereHas('roles', function($q) {
-                $q->whereIn('name', ['Super Admin', 'Bishop', 'Stream Lead', 'Region Lead', 'Zone Lead', 'Bacenta Leader']);
+                $q->whereIn('name', ['Super Admin', 'General Admin', 'Bishop', 'Stream Lead', 'Region Lead', 'Zone Lead', 'Bacenta Leader']);
             })->count();
         } elseif ($user->hasRole('Stream Lead')) {
             $counts['streams'] = Stream::count();
@@ -135,7 +135,7 @@ class DashboardController extends BaseController
     private function scopedServices($user) {
         $query = Service::query();
 
-        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
             return $query;
         }
         if ($user->hasRole('Stream Lead')) {
@@ -168,7 +168,7 @@ class DashboardController extends BaseController
      * Mirrors ArrivalController@index scoping. Returns null when unauthorized.
      */
     private function scopedBacentaIds($user): ?array {
-        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
             return Bacenta::pluck('id')->toArray();
         }
         if ($user->hasRole('Stream Lead')) {

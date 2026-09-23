@@ -19,7 +19,7 @@ class StreamController extends BaseController
         $user = Auth::user();
         $streams = Stream::with(['overseer', 'church']);
 
-        if ($user->hasRole('Super Admin')) {
+        if ($user->hasRole(['Super Admin', 'General Admin'])) {
             return $this->sendResponse($streams->get(), 'Streams retrieved successfully.');
         }
 

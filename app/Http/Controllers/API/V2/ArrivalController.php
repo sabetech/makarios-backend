@@ -17,7 +17,7 @@ class ArrivalController extends BaseController
         // Query accessible bacentas based on role
         $bacentaQuery = Bacenta::with(['leader', 'region', 'zone']);
 
-        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
             // All bacentas
         } elseif ($user->hasRole('Stream Lead')) {
             // Stream bacentas if applicable, or via regions
@@ -66,7 +66,7 @@ class ArrivalController extends BaseController
         });
 
         $userRole = 'Bacenta Leader';
-        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
             $userRole = 'Admin';
         } elseif ($user->hasRole('Region Lead')) {
             $userRole = 'Region Lead';
@@ -100,7 +100,7 @@ class ArrivalController extends BaseController
         }
 
         // Check authorization to submit for this bacenta
-        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
             // Authorized
         } elseif ($user->hasRole('Region Lead')) {
             if (!$user->region || $bacenta->region_id !== $user->region->id) {

@@ -34,7 +34,7 @@ class ServiceController extends BaseController
 
         //filter services based on user role
         $user = Auth::user();
-        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
             // See all
         } 
         if ($user->hasRole('Stream Lead')) {
@@ -80,7 +80,7 @@ class ServiceController extends BaseController
 
         //filter types based on user role
         $user = Auth::user();
-        if ($user->hasRole(['Super Admin','Bishop'])) {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
             // See all
         } else {
             $types = $types->filter(function($type) use ($user) {

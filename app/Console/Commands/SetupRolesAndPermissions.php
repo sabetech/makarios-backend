@@ -108,6 +108,9 @@ class SetupRolesAndPermissions extends Command
         Permission::firstOrCreate(['name' => 'approve arrivals']);
 
         $superAdmin->givePermissionTo(Permission::all());
+        // General Admin is one step below Super Admin: all current permissions.
+        // (API route/controller access is still governed by role names separately.)
+        $generalAdmin->givePermissionTo(Permission::all());
         $bishop->givePermissionTo([
             'view churches',
             'firstOrCreate churches',

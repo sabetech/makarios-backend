@@ -229,7 +229,7 @@ class AttendanceController extends BaseController
      */
     private function applyRoleScope($query, $user)
     {
-        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
             return $query;
         }
 
@@ -254,7 +254,7 @@ class AttendanceController extends BaseController
 
     private function canAccessMember($user, $member): bool
     {
-        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
             return true;
         }
 
@@ -279,7 +279,7 @@ class AttendanceController extends BaseController
 
     private function canAccessService($user, $service): bool
     {
-        if ($user->hasRole(['Super Admin', 'Bishop'])) {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
             return true;
         }
 

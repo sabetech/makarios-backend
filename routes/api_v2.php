@@ -51,7 +51,7 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         Route::post('members', 'create');
     });
 
-    Route::middleware('role:Super Admin|Bishop')->group(function () {
+    Route::middleware('role:Super Admin|General Admin|Bishop')->group(function () {
         Route::controller(StreamController::class)->group(function(){
             Route::get('streams', 'index');
             Route::post('streams', 'create');
@@ -73,7 +73,7 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         // });
     });
 
-    Route::middleware('role:Super Admin|Bishop|Stream Lead|Region Lead')->group(function () {
+    Route::middleware('role:Super Admin|General Admin|Bishop|Stream Lead|Region Lead')->group(function () {
         Route::controller(RegionController::class)->group(function(){
         Route::get('regions', 'index');
         Route::get('regions/{id}', 'show');
@@ -87,18 +87,20 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         });
 
         // Region transfers rewrite denormalized stream copies across the
-        // region's members, services and micro-churches: Super Admin/Bishop only.
-        Route::middleware('role:Super Admin|Bishop')->group(function () {
+        // region's members, services and micro-churches: top-level admins only.
+        Route::middleware('role:Super Admin|General Admin|Bishop')->group(function () {
             Route::controller(RegionController::class)->group(function(){
                 Route::post('regions/{id}/transfer', 'transfer');
             });
         });
     });
 
-    Route::middleware('role:Super Admin|Bishop')->group(function () {
+    Route::middleware('role:Super Admin|General Admin|Bishop')->group(function () {
         Route::controller(UserController::class)->group(function(){
             Route::get('leaders', 'index');
             Route::get('/roles', 'getRoles');
+            Route::put('leaders/{id}', 'updateRole');
+            Route::delete('leaders/{id}', 'destroy');
         });
     });
 
@@ -109,14 +111,14 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         });
     });
 
-    Route::middleware('role:Super Admin|Bishop|Stream Lead')->group(function () {
+    Route::middleware('role:Super Admin|General Admin|Bishop|Stream Lead')->group(function () {
         Route::controller(StreamController::class)->group(function(){
             Route::get('streams/{stream}/bacentas', 'getBacentas');
             Route::get('streams/{stream}/members', 'getMembers');
         });
     });
 
-    Route::middleware('role:Super Admin|Bishop|Region Lead|Zone Lead')->group(function () {
+    Route::middleware('role:Super Admin|General Admin|Bishop|Region Lead|Zone Lead')->group(function () {
         Route::controller(ZoneController::class)->group(function(){
             Route::get('zones', 'index');
             Route::get('zones/{zone}', 'show');
@@ -127,7 +129,7 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         });
     });
 
-    Route::middleware('role:Super Admin|Bishop|Stream Lead|Region Lead|Zone Lead|Bacenta Leader')->group(function () {
+    Route::middleware('role:Super Admin|General Admin|Bishop|Stream Lead|Region Lead|Zone Lead|Bacenta Leader')->group(function () {
         Route::controller(AttendanceController::class)->group(function(){
             Route::post('attendance', 'store');
             Route::get('attendance/member/{memberId}', 'memberHistory');
@@ -137,7 +139,7 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         });
     });
 
-    Route::middleware('role:Super Admin|Bishop|Region Lead|Bacenta Leader')->group(function () {
+    Route::middleware('role:Super Admin|General Admin|Bishop|Region Lead|Bacenta Leader')->group(function () {
         Route::controller(BacentaController::class)->group(function(){
             Route::get('bacentas', 'index');
             Route::put('bacentas/{bacenta}', 'update');
@@ -148,7 +150,7 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
 
         });
 
-        Route::middleware('role:Super Admin|Bishop|Region Lead')->group(function () {
+        Route::middleware('role:Super Admin|General Admin|Bishop|Region Lead')->group(function () {
             Route::controller(BacentaController::class)->group(function(){
                 Route::post('bacentas/{bacenta}/suspend', 'suspend');
                 Route::post('bacentas/{bacenta}/activate', 'activate');
