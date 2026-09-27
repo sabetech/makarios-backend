@@ -50,6 +50,14 @@ class MemberController extends BaseController {
 
         $bacenta = isset($validated['bacenta'][0]) ? Bacenta::find($validated['bacenta'][0]) : null;
 
+        // Stamp the full hierarchy so role-scoped reads (which filter on
+        // members.region_id) can see the new member. When no bacenta was
+        // chosen, fall back to the creating user's own region.
+        $region = $bacenta?->region;
+        if (!$bacenta) {
+            $region = Auth::user()?->region;
+        }
+
         $data = [
             'name' => $validated['name'],
             'phone' => $validated['phone'] ?? null,
@@ -62,7 +70,9 @@ class MemberController extends BaseController {
             'address' => $validated['address'] ?? null,
             'bacenta_id' => isset($validated['bacenta'][0]) ? $validated['bacenta'][0] : null,
             'basonta_id' => isset($validated['basonta'][0]) ? $validated['basonta'][0] : null,
-            'stream_id' => $bacenta?->region?->stream_id,
+            'region_id' => $region?->id,
+            'zone_id' => $bacenta?->zone?->id,
+            'stream_id' => $region?->stream_id,
         ];
 
         if (!empty($validated['picture'])) {
