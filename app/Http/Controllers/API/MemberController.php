@@ -224,4 +224,16 @@ class MemberController extends BaseController
 
         return $this->sendResponse($member, 'Member updated successfully.');
     }
+
+    public function destroy($id) {
+        $member = Member::find($id);
+
+        if (!$member) {
+            return $this->sendError('Member not found.', ['error'=>'Member not found'], 404);
+        }
+
+        $member->delete();
+
+        return $this->sendResponse(null, 'Member deleted successfully.');
+    }
 }

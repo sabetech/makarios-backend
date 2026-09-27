@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Member extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $guarded = ['id'];
     //only show the following fields when returning a member as json
     protected $hidden = ['created_at', 'updated_at', 'deleted_at', 'user_id', 'church_id', 'zone_id', 'fellowship_id', 'fellowship_leader_id', 'laravel_through_key', 'micro_churches_id'];

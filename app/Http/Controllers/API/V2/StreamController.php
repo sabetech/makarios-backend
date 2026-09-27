@@ -3,13 +3,21 @@
 namespace App\Http\Controllers\API\V2;
 
 use App\Models\Bacenta;
+use App\Models\Arrival;
+use App\Models\ArrivalSettings;
 use App\Models\Church;
 use App\Models\Member;
+use App\Models\MicroChurch;
+use App\Models\Region;
+use App\Models\Service;
 use App\Models\Stream;
 use App\Models\User;
+use App\Models\UserChurchInfo;
+use App\Models\Zone;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\API\BaseController as BaseController;
 
 class StreamController extends BaseController
@@ -148,6 +156,94 @@ class StreamController extends BaseController
         }
 
         return $this->sendResponse($stream, 'Stream updated successfully.');
+    }
+
+    public function destroy($id): JsonResponse {
+        $stream = Stream::find($id);
+
+        if (!$stream) {
+            return $this->sendError('Stream not found.', ['error'=>'Stream not found'], 404);
+        }
+
+        $streamId = $stream->id;
+        $regionIds = Region::where('stream_id', $streamId)->pluck('id')->all();
+        $zoneIds = !empty($regionIds)
+            ? Zone::whereIn('region_id', $regionIds)->pluck('id')->all()
+            : [];
+        $bacentaIds = [];
+        if (!empty($regionIds) || !empty($zoneIds)) {
+            $bacentaQuery = Bacenta::query();
+            if (!empty($regionIds)) {
+                $bacentaQuery->whereIn('region_id', $regionIds);
+            }
+            if (!empty($zoneIds)) {
+                $bacentaQuery->orWhereIn('zone_id', $zoneIds);
+            }
+            $bacentaIds = $bacentaQuery->pluck('id')->all();
+        }
+        $microChurchIds = MicroChurch::where('stream_id', $streamId)
+            ->when(!empty($regionIds), fn($q) => $q->orWhereIn('region_id', $regionIds))
+            ->pluck('id')->all();
+
+        $counts = DB::transaction(function () use ($stream, $streamId, $regionIds, $zoneIds, $bacentaIds, $microChurchIds) {
+            // Leaf records first (all soft deletes — users and members are never deleted).
+            $arrivals = empty($bacentaIds)
+                ? 0
+                : Arrival::whereIn('bacenta_id', $bacentaIds)->delete();
+
+            $services = Service::where('stream_id', $streamId)
+                ->when(!empty($regionIds), fn($q) => $q->orWhereIn('region_id', $regionIds))
+                ->when(!empty($zoneIds), fn($q) => $q->orWhereIn('zone_id', $zoneIds))
+                ->when(!empty($bacentaIds), fn($q) => $q->orWhereIn('bacenta_id', $bacentaIds))
+                ->delete();
+
+            $microChurches = MicroChurch::where('stream_id', $streamId)
+                ->when(!empty($regionIds), fn($q) => $q->orWhereIn('region_id', $regionIds))
+                ->delete();
+
+            $arrivalsSettings = ArrivalSettings::where('stream_id', $streamId)->delete();
+
+            // Members stay, but their links into the deleted subtree are detached.
+            $membersDetached = Member::where('stream_id', $streamId)
+                ->when(!empty($regionIds), fn($q) => $q->orWhereIn('region_id', $regionIds))
+                ->when(!empty($zoneIds), fn($q) => $q->orWhereIn('zone_id', $zoneIds))
+                ->when(!empty($bacentaIds), fn($q) => $q->orWhereIn('bacenta_id', $bacentaIds))
+                ->when(!empty($microChurchIds), fn($q) => $q->orWhereIn('micro_churches_id', $microChurchIds))
+                ->update([
+                    'stream_id' => null,
+                    'region_id' => null,
+                    'zone_id' => null,
+                    'bacenta_id' => null,
+                    'micro_churches_id' => null,
+                ]);
+
+            // Auxiliary leader-placement links are soft-deleted; user accounts are kept.
+            $usersChurchInfo = UserChurchInfo::where('stream_id', $streamId)
+                ->when(!empty($regionIds), fn($q) => $q->orWhereIn('region_id', $regionIds))
+                ->when(!empty($zoneIds), fn($q) => $q->orWhereIn('zone_id', $zoneIds))
+                ->when(!empty($bacentaIds), fn($q) => $q->orWhereIn('bacenta_id', $bacentaIds))
+                ->delete();
+
+            $bacentas = empty($bacentaIds) ? 0 : Bacenta::whereIn('id', $bacentaIds)->delete();
+            $zones = empty($zoneIds) ? 0 : Zone::whereIn('id', $zoneIds)->delete();
+            $regions = empty($regionIds) ? 0 : Region::whereIn('id', $regionIds)->delete();
+
+            $stream->delete();
+
+            return [
+                'arrivals' => $arrivals,
+                'services' => $services,
+                'microchurches' => $microChurches,
+                'arrivals_settings' => $arrivalsSettings,
+                'members_detached' => $membersDetached,
+                'users_church_info' => $usersChurchInfo,
+                'bacentas' => $bacentas,
+                'zones' => $zones,
+                'regions' => $regions,
+            ];
+        });
+
+        return $this->sendResponse(['id' => (int) $streamId, ...$counts], 'Stream deleted successfully.');
     }
 
 }

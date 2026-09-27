@@ -51,12 +51,21 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         Route::post('members', 'create');
     });
 
+    Route::middleware('role:Super Admin|General Admin|Bishop|Region Lead|Bacenta Leader')->group(function () {
+        Route::controller(MemberController::class)->group(function () {
+            Route::get('members/{id}', 'show');
+            Route::put('members/{id}', 'update');
+            Route::delete('members/{id}', 'destroy');
+        });
+    });
+
     Route::middleware('role:Super Admin|General Admin|Bishop')->group(function () {
         Route::controller(StreamController::class)->group(function(){
             Route::get('streams', 'index');
             Route::post('streams', 'create');
             Route::get('streams/{stream}', 'show');
             Route::get('streams/{stream}/regions', 'getRegions');
+            Route::delete('streams/{stream}', 'destroy');
         });
 
         Route::controller(ShepherdorialCycleController::class)->group(function(){

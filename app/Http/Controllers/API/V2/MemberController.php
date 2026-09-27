@@ -77,4 +77,93 @@ class MemberController extends BaseController {
 
         return $this->sendResponse($member, 'Member created successfully.');
     }
+
+    public function show($id)
+    {
+        $member = Member::with(['bacenta', 'region', 'stream'])->find($id);
+
+        if (!$member) {
+            return $this->sendError('Member not found.', ['error' => 'Member not found'], 404);
+        }
+
+        return $this->sendResponse($member, 'Member retrieved successfully.');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $member = Member::find($id);
+
+        if (!$member) {
+            return $this->sendError('Member not found.', ['error' => 'Member not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'phone' => 'nullable|string|max:255',
+            'whatsapp' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'dob' => 'nullable|date',
+            'date_of_birth' => 'nullable|date',
+            'occupation' => 'nullable|string|max:255',
+            'address' => 'nullable|string',
+            'gps_location' => 'nullable|string',
+            'img_url' => 'nullable|string',
+            'bacenta_id' => 'nullable|integer|exists:bacentas,id',
+            'basonta_id' => 'nullable|integer|exists:basontas,id',
+        ]);
+
+        $data = $validated;
+
+        if (array_key_exists('dob', $data)) {
+            $data['date_of_birth'] = $data['dob'] ? date('Y-m-d', strtotime($data['dob'])) : null;
+            unset($data['dob']);
+        }
+
+        foreach (['gender', 'marital_status'] as $field) {
+            if ($request->has($field)) {
+                $value = $request->get($field);
+                $data[$field] = is_array($value) ? ($value[0] ?? null) : $value;
+            }
+        }
+
+        foreach (['bacenta' => 'bacenta_id', 'basonta' => 'basonta_id'] as $input => $column) {
+            if ($request->has($input)) {
+                $value = $request->get($input);
+                if (is_array($value)) {
+                    $value = $value[0] ?? null;
+                }
+                $data[$column] = $value ? (int) $value : null;
+            }
+        }
+
+        if (array_key_exists('bacenta_id', $data) && $data['bacenta_id']) {
+            $bacenta = Bacenta::find($data['bacenta_id']);
+
+            if (!$bacenta) {
+                return $this->sendError('Bacenta not found.', ['error' => 'Bacenta not found'], 404);
+            }
+
+            $region = $bacenta->region;
+            $data['region_id'] = $region?->id;
+            $data['zone_id'] = $bacenta->zone?->id;
+            $data['stream_id'] = $region?->stream_id;
+        }
+
+        $member->update($data);
+
+        return $this->sendResponse($member->fresh(['bacenta', 'region', 'stream']), 'Member updated successfully.');
+    }
+
+    public function destroy($id)
+    {
+        $member = Member::find($id);
+
+        if (!$member) {
+            return $this->sendError('Member not found.', ['error' => 'Member not found'], 404);
+        }
+
+        $member->delete();
+
+        return $this->sendResponse(null, 'Member deleted successfully.');
+    }
 }
