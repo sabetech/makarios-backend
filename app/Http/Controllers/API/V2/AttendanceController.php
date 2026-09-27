@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\V2;
 
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Http\Controllers\API\V2\Concerns\ScopesByRole;
 use App\Models\Member;
 use App\Models\MemberAttendance;
 use App\Models\AttendanceSeverityThreshold;
@@ -15,6 +16,8 @@ use Illuminate\Support\Collection;
 
 class AttendanceController extends BaseController
 {
+    use ScopesByRole;
+
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -27,7 +30,7 @@ class AttendanceController extends BaseController
         $user = Auth::user();
         $service = Service::findOrFail($data['service_id']);
 
-        if (!$this->canAccessService($user, $service)) {
+        if (!$this->recordInScope($service, $user)) {
             return $this->sendError('Unauthorized', ['error' => 'You do not have access to this service.'], 403);
         }
 
@@ -60,7 +63,7 @@ class AttendanceController extends BaseController
         $member = Member::findOrFail($memberId);
         $user = Auth::user();
 
-        if (!$this->canAccessMember($user, $member)) {
+        if (!$this->recordInScope($member, $user)) {
             return $this->sendError('Unauthorized', ['error' => 'You do not have access to this member.'], 403);
         }
 
@@ -223,82 +226,15 @@ class AttendanceController extends BaseController
         return $this->resolveSeverity($threshold);
     }
 
-    /**
-     * Apply the signed-in user's visibility scope to a Member or Service query.
-     * Both tables share stream_id / region_id / zone_id / bacenta_id columns.
-     */
-    private function applyRoleScope($query, $user)
-    {
-        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
-            return $query;
-        }
-
-        if ($user->hasRole('Stream Lead') && $user->stream) {
-            return $query->where('stream_id', $user->stream->id);
-        }
-
-        if ($user->hasRole('Region Lead') && $user->region) {
-            return $query->where('region_id', $user->region->id);
-        }
-
-        if ($user->hasRole('Zone Lead') && $user->zone) {
-            return $query->where('zone_id', $user->zone->id);
-        }
-
-        if ($user->hasRole('Bacenta Leader') && $user->bacenta) {
-            return $query->where('bacenta_id', $user->bacenta->id);
-        }
-
-        return $query->whereRaw('1 = 0');
-    }
-
+    // Role-scope rules live in ScopesByRole so all controllers share one
+    // definition; applyRoleScope() is used directly from the trait.
     private function canAccessMember($user, $member): bool
     {
-        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
-            return true;
-        }
-
-        if ($user->hasRole('Stream Lead')) {
-            return $user->stream && $member->stream_id === $user->stream->id;
-        }
-
-        if ($user->hasRole('Region Lead')) {
-            return $user->region && $member->region_id === $user->region->id;
-        }
-
-        if ($user->hasRole('Zone Lead')) {
-            return $user->zone && $member->zone_id === $user->zone->id;
-        }
-
-        if ($user->hasRole('Bacenta Leader')) {
-            return $user->bacenta && $member->bacenta_id === $user->bacenta->id;
-        }
-
-        return false;
+        return $this->recordInScope($member, $user);
     }
 
     private function canAccessService($user, $service): bool
     {
-        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
-            return true;
-        }
-
-        if ($user->hasRole('Stream Lead')) {
-            return $user->stream && $service->stream_id === $user->stream->id;
-        }
-
-        if ($user->hasRole('Region Lead')) {
-            return $user->region && $service->region_id === $user->region->id;
-        }
-
-        if ($user->hasRole('Zone Lead')) {
-            return $user->zone && $service->zone_id === $user->zone->id;
-        }
-
-        if ($user->hasRole('Bacenta Leader')) {
-            return $user->bacenta && $service->bacenta_id === $user->bacenta->id;
-        }
-
-        return false;
+        return $this->recordInScope($service, $user);
     }
 }

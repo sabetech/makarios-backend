@@ -9,6 +9,7 @@ use App\Models\MicroChurch;
 use App\Models\Region;
 use App\Models\Service;
 use App\Models\Stream;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -61,20 +62,18 @@ class RegionController extends BaseController
     }
 
     public function show($id) {
-        $region = Region::with('leader', 'stream','bacentas', 'membersThrough')->find($id);
-
-        if (!$region) {
-            return $this->sendError('Region not found', [], 404);
+        [$region, $error] = $this->getAccessibleRegion($id);
+        if ($error) {
+            return $error;
         }
 
-        return $this->sendResponse($region, 'Region retrieved successfully.');
+        return $this->sendResponse($region->load(['leader', 'stream', 'bacentas', 'membersThrough']), 'Region retrieved successfully.');
     }
 
     public function getBacentas($id) {
-        $region = Region::find($id);
-
-        if (!$region) {
-            return $this->sendError('Region not found', [], 404);
+        [$region, $error] = $this->getAccessibleRegion($id);
+        if ($error) {
+            return $error;
         }
 
         $bacentas = $region->bacentas()->with('leader')->get();
@@ -87,6 +86,107 @@ class RegionController extends BaseController
         });
 
         return $this->sendResponse($bacentas, 'Bacentas retrieved successfully.');
+    }
+
+    public function update(Request $request, $id) {
+        [$region, $error] = $this->getAccessibleRegion($id);
+        if ($error) {
+            return $error;
+        }
+
+        $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'leader_id' => 'sometimes|required|exists:users,id',
+            'stream_id' => 'sometimes|required|exists:streams,id',
+        ]);
+
+        $region->update($request->only(['name', 'leader_id', 'stream_id']));
+
+        // Make the new leader a region lead if they aren't already.
+        $leader = $region->fresh()->leader;
+        if ($leader && !$leader->hasRole('Region Lead')) {
+            $leader->assignRole('Region Lead');
+        }
+
+        return $this->sendResponse($region->fresh()->load(['leader', 'stream']), 'Region updated successfully.');
+    }
+
+    public function getMembers($id) {
+        [$region, $error] = $this->getAccessibleRegion($id);
+        if ($error) {
+            return $error;
+        }
+
+        $bacentaIds = Bacenta::where('region_id', $region->id)->pluck('id')->toArray();
+
+        $members = Member::with(['bacenta', 'zone', 'region'])
+            ->where('region_id', $region->id)
+            ->when(!empty($bacentaIds), fn($q) => $q->orWhereIn('bacenta_id', $bacentaIds))
+            ->orderBy('name')
+            ->get();
+
+        return $this->sendResponse([
+            'total' => $members->count(),
+            'members' => $members,
+        ], 'Members retrieved successfully.');
+    }
+
+    public function getServices($id) {
+        [$region, $error] = $this->getAccessibleRegion($id);
+        if ($error) {
+            return $error;
+        }
+
+        $bacentaIds = Bacenta::where('region_id', $region->id)->pluck('id')->toArray();
+
+        $services = Service::with(['bacenta', 'serviceType'])
+            ->where('region_id', $region->id)
+            ->when(!empty($bacentaIds), fn($q) => $q->orWhereIn('bacenta_id', $bacentaIds))
+            ->orderByDesc('date')
+            ->get();
+
+        return $this->sendResponse($services, 'Services retrieved successfully.');
+    }
+
+    /**
+     * Resolve a region the current user may access: admins see any
+     * region, a Stream Lead sees regions in their stream(s), and a
+     * Region Lead sees only their own region.
+     *
+     * @return array{0: Region|null, 1: \Illuminate\Http\JsonResponse|null}
+     */
+    private function getAccessibleRegion($id): array
+    {
+        $user = Auth::user();
+        $region = Region::find($id);
+
+        if (!$region) {
+            return [null, $this->sendError('Region not found', [], 404)];
+        }
+
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
+            return [$region, null];
+        }
+
+        if ($user->hasRole('Stream Lead')) {
+            $streamIds = $user->overseenStreams()->pluck('id')->toArray();
+            if (!empty($streamIds) && in_array($region->stream_id, $streamIds)) {
+                return [$region, null];
+            }
+            if ($user->stream && (int) $region->stream_id === (int) $user->stream->id) {
+                return [$region, null];
+            }
+            return [null, $this->sendError('Unauthorized', ['error' => 'You do not have access to this region.'], 403)];
+        }
+
+        if ($user->hasRole('Region Lead')) {
+            if ($user->region && (int) $user->region->id === (int) $region->id) {
+                return [$region, null];
+            }
+            return [null, $this->sendError('Unauthorized', ['error' => 'You do not have access to this region.'], 403)];
+        }
+
+        return [null, $this->sendError('Unauthorized', [], 403)];
     }
 
     public function transfer(Request $request, $id) {

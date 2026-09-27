@@ -8,10 +8,13 @@ use App\Models\Member;
 use App\Models\Bacenta;
 use App\Models\Basonta;
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Http\Controllers\API\V2\Concerns\ScopesByRole;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Support\Facades\Log;
 
 class MemberController extends BaseController {
+    use ScopesByRole;
+
     //
     public function index()
     {
@@ -23,7 +26,7 @@ class MemberController extends BaseController {
             return $this->sendError('Unauthorised.', ['error'=>'User not found'], 401);
         }
 
-        $members = Member::select();
+        $members = $this->applyRoleScope(Member::query(), $user);
 
         return $this->sendResponse($members->get(), 'Members retrieved successfully.');
     }
@@ -90,21 +93,19 @@ class MemberController extends BaseController {
 
     public function show($id)
     {
-        $member = Member::with(['bacenta', 'region', 'stream'])->find($id);
-
-        if (!$member) {
-            return $this->sendError('Member not found.', ['error' => 'Member not found'], 404);
+        [$member, $error] = $this->getAccessibleMember($id);
+        if ($error) {
+            return $error;
         }
 
-        return $this->sendResponse($member, 'Member retrieved successfully.');
+        return $this->sendResponse($member->load(['bacenta', 'region', 'stream']), 'Member retrieved successfully.');
     }
 
     public function update(Request $request, $id)
     {
-        $member = Member::find($id);
-
-        if (!$member) {
-            return $this->sendError('Member not found.', ['error' => 'Member not found'], 404);
+        [$member, $error] = $this->getAccessibleMember($id);
+        if ($error) {
+            return $error;
         }
 
         $validated = $request->validate([
@@ -157,6 +158,11 @@ class MemberController extends BaseController {
             $data['region_id'] = $region?->id;
             $data['zone_id'] = $bacenta->zone?->id;
             $data['stream_id'] = $region?->stream_id;
+
+            // A lead may not move a member into a bacenta outside their scope.
+            if (!$this->recordInScope((object) $data, Auth::user())) {
+                return $this->sendError('Unauthorized', ['error' => 'You cannot move this member outside your scope.'], 403);
+            }
         }
 
         $member->update($data);
@@ -166,14 +172,34 @@ class MemberController extends BaseController {
 
     public function destroy($id)
     {
-        $member = Member::find($id);
-
-        if (!$member) {
-            return $this->sendError('Member not found.', ['error' => 'Member not found'], 404);
+        [$member, $error] = $this->getAccessibleMember($id);
+        if ($error) {
+            return $error;
         }
 
         $member->delete();
 
         return $this->sendResponse(null, 'Member deleted successfully.');
+    }
+
+    /**
+     * Resolve a member the current user may access, following the same
+     * scoping rules as index().
+     *
+     * @return array{0: Member|null, 1: \Illuminate\Http\JsonResponse|null}
+     */
+    private function getAccessibleMember($id): array
+    {
+        $member = Member::find($id);
+
+        if (!$member) {
+            return [null, $this->sendError('Member not found.', ['error' => 'Member not found'], 404)];
+        }
+
+        if (!$this->recordInScope($member, Auth::user())) {
+            return [null, $this->sendError('Unauthorized', ['error' => 'You do not have access to this member.'], 403)];
+        }
+
+        return [$member, null];
     }
 }
