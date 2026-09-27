@@ -39,6 +39,9 @@ class MemberController extends BaseController
         if ($user) {
             if ($user->roles->count() > 0) {
                 if (($user->roles[0]->name) == 'Region Lead' ) {
+                    if (!$user->region) {
+                        return $this->sendError('No region assigned', [], 403);
+                    }
                     $members = $members->where('region_id', $user->region->id);
                 }
 
