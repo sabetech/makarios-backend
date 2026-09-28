@@ -6,6 +6,7 @@ use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Bacenta;
 use App\Models\Service;
 use App\Models\ServiceType;
+use App\Models\Stream;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
@@ -95,26 +96,89 @@ class ServiceController extends BaseController
     }
 
     public function create(): JsonResponse {
-        $data = request()->validate([
+        $serviceType = ServiceType::find(request()->input('service_type_id'));
+        $typeName = $serviceType ? trim((string) $serviceType->service_type) : '';
+        $isStreamService = strcasecmp($typeName, 'Stream Service') === 0;
+        $isBacentaService = strcasecmp($typeName, 'Bacenta Service') === 0;
+
+        $rules = [
             'service_type_id' => 'required|exists:service_types,id',
-            'bacenta_id' => 'required|exists:bacentas,id',
             'offering' => 'required|numeric',
+            'foreign_currency' => 'nullable|numeric',
             'attendance' => 'required|integer',
             'service_date' => 'required|date',
             'treasures' => 'required|array',
             'treasures_picture' => 'required|string',
             'service_img' => 'required|string',
-        ]);
+        ];
 
-        if ($data['bacenta_id']) {
-            $bacenta = Bacenta::with('region')->find($data['bacenta_id']);
-            if ($bacenta && $bacenta->region) {
-                $data['region_id'] = $bacenta->region_id;
-                $data['stream_id'] = $bacenta->region->stream_id;
+        if ($isStreamService) {
+            $rules['stream_id'] = 'required|exists:streams,id';
+            $rules['bacenta_id'] = 'prohibited';
+        } elseif ($isBacentaService) {
+            $rules['bacenta_id'] = 'required|exists:bacentas,id';
+            $rules['stream_id'] = 'nullable|exists:streams,id';
+        } else {
+            $rules['bacenta_id'] = 'required_without:stream_id|nullable|exists:bacentas,id';
+            $rules['stream_id'] = 'required_without:bacenta_id|nullable|exists:streams,id';
+        }
+
+        $messages = [];
+        if ($isStreamService) {
+            $messages = [
+                'bacenta_id.prohibited' => 'Bacenta must not be present for Stream services.',
+                'stream_id.required' => 'A stream is required for Stream services.',
+            ];
+        }
+
+        $data = request()->validate($rules, $messages);
+
+        if ($isStreamService) {
+            $stream = Stream::find($data['stream_id']);
+            if (!$stream) {
+                return response()->json(['success' => false, 'message' => 'Stream not found.'], 422);
             }
-            if ($bacenta && $bacenta->zone_id) {
-                $data['zone_id'] = $bacenta->zone_id;
+            if (empty($stream->church_id)) {
+                return response()->json(['success' => false, 'message' => 'Stream has no church assigned.'], 422);
             }
+            $data['church_id'] = $stream->church_id;
+            $data['bacenta_id'] = null;
+            $data['region_id'] = null;
+            $data['zone_id'] = null;
+        } elseif ($isBacentaService || !empty($data['bacenta_id'])) {
+            $bacenta = Bacenta::with('region.stream')->find($data['bacenta_id'] ?? null);
+            if (!$bacenta || !$bacenta->region || !$bacenta->region->stream_id) {
+                return response()->json(['success' => false, 'message' => 'Bacenta has no region/stream assigned.'], 422);
+            }
+            $derivedStreamId = (int) $bacenta->region->stream_id;
+            if (!empty($data['stream_id']) && (int) $data['stream_id'] !== $derivedStreamId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The stream does not match the bacenta hierarchy.',
+                    'errors' => ['stream_id' => ['The stream does not match the bacenta hierarchy.']],
+                ], 422);
+            }
+            $data['stream_id'] = $derivedStreamId;
+            $data['region_id'] = $bacenta->region_id;
+            $data['zone_id'] = $bacenta->zone_id;
+            $stream = $bacenta->relationLoaded('region') && $bacenta->region->relationLoaded('stream')
+                ? $bacenta->region->stream
+                : Stream::find($derivedStreamId);
+            if (!$stream || empty($stream->church_id)) {
+                return response()->json(['success' => false, 'message' => 'Stream has no church assigned.'], 422);
+            }
+            $data['church_id'] = $stream->church_id;
+        } else {
+            $stream = Stream::find($data['stream_id']);
+            if (!$stream) {
+                return response()->json(['success' => false, 'message' => 'Stream not found.'], 422);
+            }
+            if (empty($stream->church_id)) {
+                return response()->json(['success' => false, 'message' => 'Stream has no church assigned.'], 422);
+            }
+            $data['church_id'] = $stream->church_id;
+            $data['region_id'] = null;
+            $data['zone_id'] = null;
         }
 
         $treasurerResult = Cloudinary::upload($data['treasures_picture'], [
@@ -134,8 +198,8 @@ class ServiceController extends BaseController
         $data['date'] = $data['service_date'];
         unset($data['service_date']);
 
-        $data['church_id'] = 1 ; // Assuming all services are for the same church for now. Adjust as needed.
         $data['treasurers'] = implode(', ', $data['treasures']);
+        unset($data['treasures']);
         $service = Service::create($data);
 
         return response()->json([
