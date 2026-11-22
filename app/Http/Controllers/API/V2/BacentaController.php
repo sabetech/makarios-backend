@@ -46,7 +46,7 @@ class BacentaController extends BaseController
 
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'leader_id' => 'sometimes|exists:users,id',
+            'leader_id' => 'sometimes|nullable|exists:users,id',
             'region_id' => 'sometimes|exists:regions,id',
         ]);
 
