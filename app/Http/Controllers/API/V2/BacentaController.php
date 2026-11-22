@@ -37,16 +37,32 @@ class BacentaController extends BaseController
 
     public function update(Request $request, $id)
     {
+        $user = auth()->user();
         $bacenta = Bacenta::find($id);
         if (!$bacenta) {
             return $this->sendError('Bacenta not found', [], 404);
         }
 
-        // Authorization logic here (similar to index)
+        // Authorization: Super Admin / General Admin / Bishop can update any bacenta;
+        // Region Lead can only update bacentas in their region;
+        // Bacenta Leader can only update their own bacenta.
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
+            // unrestricted
+        } elseif ($user->hasRole('Region Lead')) {
+            if (!$user->region || $bacenta->region_id !== $user->region->id) {
+                return $this->sendError('Unauthorized', ['error' => 'You can only manage bacentas in your region.'], 403);
+            }
+        } elseif ($user->hasRole('Bacenta Leader')) {
+            if ($bacenta->leader_id !== $user->id) {
+                return $this->sendError('Unauthorized', ['error' => 'You do not have access to this bacenta.'], 403);
+            }
+        } else {
+            return $this->sendError('Unauthorized', [], 403);
+        }
 
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'leader_id' => 'sometimes|exists:users,id',
+            'leader_id' => 'sometimes|nullable|exists:users,id',
             'region_id' => 'sometimes|exists:regions,id',
         ]);
 

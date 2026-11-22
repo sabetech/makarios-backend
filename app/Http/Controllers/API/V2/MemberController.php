@@ -26,12 +26,25 @@ class MemberController extends BaseController {
             return $this->sendError('Unauthorised.', ['error'=>'User not found'], 401);
         }
 
-        $members = $this->applyRoleScope(Member::query(), $user);
+        $members = $this->applyRoleScope(
+            Member::with(['bacenta', 'region', 'zone', 'stream']),
+            $user
+        );
 
         return $this->sendResponse($members->get(), 'Members retrieved successfully.');
     }
 
     public function create(Request $request){
+
+        // PWA pickers send a bare id (bacenta: "2") while other clients send
+        // arrays (gender: ["male"]). Accept both shapes so neither is rejected
+        // by the array rules below.
+        foreach (['bacenta', 'basonta', 'gender', 'marital_status'] as $field) {
+            $value = $request->input($field);
+            if ($value !== null && $value !== '' && !is_array($value)) {
+                $request->merge([$field => [$value]]);
+            }
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -49,6 +62,8 @@ class MemberController extends BaseController {
             'gps_location' => 'nullable|string',
             'bacenta' => 'nullable|array',
             'bacenta.*' => 'integer|exists:bacentas,id',
+            'basonta' => 'nullable|array',
+            'basonta.*' => 'integer|exists:basontas,id',
         ]);
 
         $bacenta = isset($validated['bacenta'][0]) ? Bacenta::find($validated['bacenta'][0]) : null;
