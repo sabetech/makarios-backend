@@ -26,7 +26,10 @@ class MemberController extends BaseController {
             return $this->sendError('Unauthorised.', ['error'=>'User not found'], 401);
         }
 
-        $members = $this->applyRoleScope(Member::query(), $user);
+        $members = $this->applyRoleScope(
+            Member::with(['bacenta', 'region', 'zone', 'stream']),
+            $user
+        );
 
         return $this->sendResponse($members->get(), 'Members retrieved successfully.');
     }

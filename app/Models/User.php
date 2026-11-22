@@ -127,6 +127,14 @@ class User extends Authenticatable
         return $this->hasOne(Bacenta::class, 'leader_id', 'id');
     }
 
+    /**
+     * Every bacenta this user leads. A leader may lead more than one, so
+     * scoping must use this rather than the single-row bacenta() relation.
+     */
+    public function ledBacentas() {
+        return $this->hasMany(Bacenta::class, 'leader_id', 'id');
+    }
+
     public function bacentas() {
         if ($this->roles->count() > 0) {
             if ($this->roles[0]->name == 'Super Admin' || $this->roles[0] == 'Bishop' || $this->roles[0] == 'General Admin') {

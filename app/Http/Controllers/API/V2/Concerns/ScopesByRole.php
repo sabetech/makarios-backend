@@ -40,11 +40,24 @@ trait ScopesByRole
             return $query->where('zone_id', $user->zone->id);
         }
 
-        if ($user->hasRole('Bacenta Leader') && $user->bacenta) {
-            return $query->where('bacenta_id', $user->bacenta->id);
+        if ($user->hasRole('Bacenta Leader')) {
+            $bacentaIds = $this->ledBacentaIds($user);
+            if (!empty($bacentaIds)) {
+                return $query->whereIn('bacenta_id', $bacentaIds);
+            }
         }
 
         return $query->whereRaw('1 = 0');
+    }
+
+    /**
+     * Ids of every bacenta the user leads (a leader can lead several).
+     *
+     * @return int[]
+     */
+    protected function ledBacentaIds($user): array
+    {
+        return $user->ledBacentas()->pluck('id')->map(fn ($id) => (int) $id)->all();
     }
 
     /**
@@ -56,20 +69,23 @@ trait ScopesByRole
             return true;
         }
 
+        // Ids are cast to int: DB drivers may hydrate them as strings, and
+        // request payloads may carry either form.
         if ($user->hasRole('Stream Lead')) {
-            return (bool) ($user->stream && $record->stream_id === $user->stream->id);
+            return (bool) ($user->stream && (int) $record->stream_id === (int) $user->stream->id);
         }
 
         if ($user->hasRole('Region Lead')) {
-            return (bool) ($user->region && $record->region_id === $user->region->id);
+            return (bool) ($user->region && (int) $record->region_id === (int) $user->region->id);
         }
 
         if ($user->hasRole('Zone Lead')) {
-            return (bool) ($user->zone && $record->zone_id === $user->zone->id);
+            return (bool) ($user->zone && (int) $record->zone_id === (int) $user->zone->id);
         }
 
         if ($user->hasRole('Bacenta Leader')) {
-            return (bool) ($user->bacenta && $record->bacenta_id === $user->bacenta->id);
+            return $record->bacenta_id !== null
+                && in_array((int) $record->bacenta_id, $this->ledBacentaIds($user), true);
         }
 
         return false;

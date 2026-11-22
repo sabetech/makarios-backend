@@ -150,6 +150,49 @@ class MemberVisibilityTest extends TestCase
         $this->actingAs($this->bacentaLeader, 'sanctum')->getJson("/api/v2/members/{$this->memberB1->id}")->assertForbidden();
     }
 
+    public function test_leader_of_multiple_bacentas_sees_new_member_in_second_bacenta(): void
+    {
+        $secondBacenta = Bacenta::create([
+            'name' => 'Bacenta A2',
+            'region_id' => $this->regionA->id,
+            'leader_id' => $this->bacentaLeader->id,
+        ]);
+
+        $created = $this->actingAs($this->bacentaLeader, 'sanctum')
+            ->postJson('/api/v2/members', ['name' => 'New Member', 'bacenta' => (string) $secondBacenta->id]);
+        $created->assertOk();
+        $newId = $created->json('data.id');
+
+        $expected = collect([$this->memberA1->id, $this->memberA2->id, $newId])->sort()->values()->all();
+
+        $v2 = $this->actingAs($this->bacentaLeader, 'sanctum')->getJson('/api/v2/members');
+        $v2->assertOk();
+        $this->assertEquals($expected, $this->memberIds($v2));
+
+        $v1 = $this->actingAs($this->bacentaLeader, 'sanctum')->getJson('/api/members');
+        $v1->assertOk();
+        $this->assertEquals($expected, $this->memberIds($v1));
+
+        $this->actingAs($this->bacentaLeader, 'sanctum')->getJson("/api/v2/members/{$newId}")->assertOk();
+        $this->actingAs($this->bacentaLeader, 'sanctum')
+            ->putJson("/api/v2/members/{$this->memberA1->id}", ['bacenta_id' => $secondBacenta->id])
+            ->assertOk();
+        $this->actingAs($this->bacentaLeader, 'sanctum')
+            ->putJson("/api/v2/members/{$this->memberA1->id}", ['bacenta_id' => $this->bacentaB->id])
+            ->assertForbidden();
+    }
+
+    public function test_bacenta_leader_without_bacenta_does_not_error(): void
+    {
+        $leaderless = User::factory()->create();
+        $leaderless->assignRole('Bacenta Leader');
+
+        $this->actingAs($leaderless, 'sanctum')->getJson('/api/members')->assertForbidden();
+        $response = $this->actingAs($leaderless, 'sanctum')->getJson('/api/v2/members');
+        $response->assertOk();
+        $this->assertEmpty($response->json('data'));
+    }
+
     public function test_user_without_role_sees_nothing(): void
     {
         $response = $this->actingAs($this->plainUser, 'sanctum')->getJson('/api/v2/members');

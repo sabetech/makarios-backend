@@ -51,7 +51,12 @@ class MemberController extends BaseController
                 }
 
                 if (($user->roles[0]->name) == 'Bacenta Leader') {
-                    $members = $members->where('bacenta_id', $user->bacenta->id);
+                    // A leader may lead several bacentas; include all of them.
+                    $bacentaIds = $user->ledBacentas()->pluck('id')->all();
+                    if (empty($bacentaIds)) {
+                        return $this->sendError('No bacenta assigned', [], 403);
+                    }
+                    $members = $members->whereIn('bacenta_id', $bacentaIds);
                 }
             }
         }
