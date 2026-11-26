@@ -14,12 +14,21 @@ use Spatie\Permission\Models\Role;
 class UserController extends BaseController
 {
     public function index() {
-        $users = User::with(['roles', 'region', 'bacenta', 'overseenStreams'])
+        $users = User::with([
+                'roles',
+                'region.stream',
+                'zone.region.stream',
+                'bacenta',
+                'ledBacentas.region.stream',
+                'overseenStreams',
+            ])
             ->get()
             ->map(function($user) {
-                $userArray = $user->toArray();
                 $role = $user->roles->first()->name ?? null;
+                $streams = $this->leaderStreams($user);
+                $userArray = $user->toArray();
                 $userArray['role'] = $role;
+                $userArray['streams'] = $streams;
                 if ($role == 'Stream Lead') {
                     $userArray['leading'] = [
                         "name" => $user->overseenStreams->pluck('name')->join(', ') ?? null,
@@ -38,11 +47,39 @@ class UserController extends BaseController
                 } else {
                     $userArray['leading'] = null;
                 }
-                unset($userArray['roles'], $userArray['region'], $userArray['bacenta'], $userArray['overseen_streams']);
+                unset(
+                    $userArray['roles'],
+                    $userArray['region'],
+                    $userArray['zone'],
+                    $userArray['bacenta'],
+                    $userArray['led_bacentas'],
+                    $userArray['overseen_streams']
+                );
                 return $userArray;
             });
 
         return $this->sendResponse($users, 'Leaders retrieved successfully.');
+    }
+
+    /**
+     * Streams a user's leadership falls under, derived from everything they
+     * lead (streams overseen, their region, their zone, their bacentas).
+     * Used by the admin leaders page to filter by stream.
+     *
+     * @return array<int, array{id: int, name: string}>
+     */
+    private function leaderStreams(User $user): array
+    {
+        return collect()
+            ->merge($user->overseenStreams)
+            ->push($user->region?->stream)
+            ->push($user->zone?->region?->stream)
+            ->merge($user->ledBacentas->map(fn ($bacenta) => $bacenta->region?->stream))
+            ->filter()
+            ->unique('id')
+            ->map(fn ($stream) => ['id' => (int) $stream->id, 'name' => $stream->name])
+            ->values()
+            ->all();
     }
 
     public function getRoles() {

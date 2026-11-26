@@ -100,6 +100,14 @@ class RegionController extends BaseController
             'stream_id' => 'sometimes|required|exists:streams,id',
         ]);
 
+        // Changing the leader goes through changeLeader() (admins only), so a
+        // Region/Stream Lead can't reassign a region via a generic update.
+        if ($request->has('leader_id')
+            && (int) $request->leader_id !== (int) $region->leader_id
+            && !Auth::user()->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
+            return $this->sendError('Unauthorized', ['error' => 'Only admins can change a region\'s leader.'], 403);
+        }
+
         $region->update($request->only(['name', 'leader_id', 'stream_id']));
 
         // Make the new leader a region lead if they aren't already.
@@ -237,6 +245,64 @@ class RegionController extends BaseController
             'bacentas_moved' => count($bacentaIds),
             ...$counts,
         ], 'Region transferred successfully.');
+    }
+
+    /**
+     * Replace a region's leader (admins only). The new leader gets the
+     * Region Lead role; the previous leader loses it unless they still
+     * lead another region.
+     */
+    public function changeLeader(Request $request, $id) {
+        $request->validate([
+            'leader_id' => 'required|exists:users,id',
+        ]);
+
+        $region = Region::find($id);
+        if (!$region) {
+            return $this->sendError('Region not found', [], 404);
+        }
+
+        $newLeaderId = (int) $request->leader_id;
+        $previousLeaderId = $region->leader_id ? (int) $region->leader_id : null;
+
+        if ($previousLeaderId === $newLeaderId) {
+            return $this->sendError('This user already leads the region.', [], 422);
+        }
+
+        // Access checks resolve a Region Lead's region via a single hasOne,
+        // so one user leading two regions would lose access to one of them.
+        $otherRegion = Region::where('leader_id', $newLeaderId)
+            ->where('id', '!=', $region->id)
+            ->first();
+        if ($otherRegion) {
+            return $this->sendError(
+                "This user already leads {$otherRegion->name}. Assign that region a new leader first.",
+                [],
+                422
+            );
+        }
+
+        DB::transaction(function () use ($region, $newLeaderId, $previousLeaderId) {
+            $region->update(['leader_id' => $newLeaderId]);
+
+            $newLeader = User::find($newLeaderId);
+            if (!$newLeader->hasRole('Region Lead')) {
+                $newLeader->assignRole('Region Lead');
+            }
+
+            if ($previousLeaderId) {
+                $previousLeader = User::find($previousLeaderId);
+                $stillLeadsARegion = Region::where('leader_id', $previousLeaderId)->exists();
+                if ($previousLeader && !$stillLeadsARegion && $previousLeader->hasRole('Region Lead')) {
+                    $previousLeader->removeRole('Region Lead');
+                }
+            }
+        });
+
+        return $this->sendResponse(
+            $region->fresh()->load(['leader', 'stream']),
+            'Region leader changed successfully.'
+        );
     }
 
     public function destroy($id) {
