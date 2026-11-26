@@ -268,4 +268,52 @@ class MemberVisibilityTest extends TestCase
         $response->assertOk();
         $this->assertEquals([$this->memberA1->id, $this->memberA2->id], $this->memberIds($response));
     }
+
+    public function test_region_lead_sees_unstamped_member_in_their_bacenta(): void
+    {
+        // Legacy row: bacenta is in Region A but region_id was never stamped.
+        $legacy = Member::create(['name' => 'Legacy A', 'bacenta_id' => $this->bacentaA->id]);
+
+        $response = $this->actingAs($this->leadA, 'sanctum')->getJson('/api/v2/members');
+        $response->assertOk();
+        $this->assertEquals(
+            [$this->memberA1->id, $this->memberA2->id, $legacy->id],
+            $this->memberIds($response)
+        );
+
+        $this->actingAs($this->leadA, 'sanctum')->getJson("/api/v2/members/{$legacy->id}")->assertOk();
+
+        $other = $this->actingAs($this->leadB, 'sanctum')->getJson('/api/v2/members');
+        $this->assertEquals([$this->memberB1->id], $this->memberIds($other));
+        $this->actingAs($this->leadB, 'sanctum')->getJson("/api/v2/members/{$legacy->id}")->assertForbidden();
+    }
+
+    public function test_region_lead_sees_member_with_stale_region_stamp(): void
+    {
+        // Stamped with Region B, but the bacenta now sits in Region A.
+        $stale = Member::create(['name' => 'Stale', 'bacenta_id' => $this->bacentaA->id, 'region_id' => $this->regionB->id]);
+
+        $response = $this->actingAs($this->leadA, 'sanctum')->getJson('/api/v2/members');
+        $this->assertContains($stale->id, $this->memberIds($response));
+    }
+
+    public function test_moving_bacenta_to_another_region_restamps_its_members(): void
+    {
+        $this->actingAs($this->superAdmin, 'sanctum')
+            ->putJson("/api/v2/bacentas/{$this->bacentaA->id}", ['region_id' => $this->regionB->id])
+            ->assertOk();
+
+        $this->assertEquals($this->regionB->id, $this->memberA1->fresh()->region_id);
+        $this->assertEquals($this->regionB->id, $this->memberA2->fresh()->region_id);
+        $this->assertEquals($this->regionB->id, Service::where('bacenta_id', $this->bacentaA->id)->first()->region_id);
+
+        $leadA = $this->actingAs($this->leadA, 'sanctum')->getJson('/api/v2/members');
+        $this->assertEquals([], $this->memberIds($leadA));
+
+        $leadB = $this->actingAs($this->leadB, 'sanctum')->getJson('/api/v2/members');
+        $this->assertEquals(
+            [$this->memberA1->id, $this->memberA2->id, $this->memberB1->id],
+            $this->memberIds($leadB)
+        );
+    }
 }

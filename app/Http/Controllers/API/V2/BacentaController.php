@@ -4,6 +4,8 @@ namespace App\Http\Controllers\API\V2;
 
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Models\Bacenta;
+use App\Models\Member;
+use App\Models\Service;
 use Illuminate\Http\Request;
 
 class BacentaController extends BaseController
@@ -66,7 +68,19 @@ class BacentaController extends BaseController
             'region_id' => 'sometimes|exists:regions,id',
         ]);
 
+        $previousRegionId = $bacenta->region_id;
         $bacenta->update(request()->only(['name', 'leader_id', 'region_id']));
+
+        // Members and services carry denormalized region/stream copies; keep
+        // them in step when the bacenta moves so leads' lists stay accurate.
+        if ((int) $previousRegionId !== (int) $bacenta->region_id) {
+            $hierarchy = [
+                'region_id' => $bacenta->region_id,
+                'stream_id' => $bacenta->load('region')->region?->stream_id,
+            ];
+            Member::where('bacenta_id', $bacenta->id)->update($hierarchy);
+            Service::where('bacenta_id', $bacenta->id)->update($hierarchy);
+        }
 
         return $this->sendResponse($bacenta, 'Bacenta updated successfully.');
 
