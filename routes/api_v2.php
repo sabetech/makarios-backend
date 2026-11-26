@@ -100,6 +100,7 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         Route::middleware('role:Super Admin|General Admin|Bishop')->group(function () {
             Route::controller(RegionController::class)->group(function(){
                 Route::post('regions/{id}/transfer', 'transfer');
+                Route::put('regions/{id}/leader', 'changeLeader');
             });
         });
     });
