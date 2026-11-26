@@ -7,6 +7,7 @@ use App\Http\Controllers\API\V2\RegionController;
 use App\Http\Controllers\API\V2\BacentaController;
 use App\Http\Controllers\API\V2\BasontaController;
 use App\Http\Controllers\API\V2\UserController;
+use App\Http\Controllers\API\V2\LeaderController;
 use App\Http\Controllers\API\V2\DashboardController;
 use App\Http\Controllers\API\V2\ServiceController;
 use App\Http\Controllers\API\V2\ZoneController;
@@ -109,8 +110,15 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         Route::controller(UserController::class)->group(function(){
             Route::get('leaders', 'index');
             Route::get('/roles', 'getRoles');
-            Route::put('leaders/{id}', 'updateRole');
             Route::delete('leaders/{id}', 'destroy');
+        });
+        Route::controller(LeaderController::class)->group(function(){
+            Route::get('leaders/assignable/{type}', 'assignable');
+            Route::get('leaders/{id}', 'show');
+            Route::put('leaders/{id}', 'update');
+            Route::post('leaders/{id}/picture', 'updatePicture');
+            Route::post('leaders/{id}/assignments', 'assign');
+            Route::delete('leaders/{id}/assignments/{type}/{entityId}', 'unassign');
         });
     });
 

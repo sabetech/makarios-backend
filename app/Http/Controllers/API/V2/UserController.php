@@ -88,24 +88,6 @@ class UserController extends BaseController
         return $this->sendResponse($roles, 'Roles retrieved successfully.');
     }
 
-    public function updateRole(Request $request, $id): JsonResponse
-    {
-        $request->validate([
-            'role' => 'required|string|exists:roles,name',
-        ]);
-
-        $user = User::find($id);
-        if (!$user) {
-            return $this->sendError('User not found.', ['error' => 'User not found'], 404);
-        }
-
-        // Replace (not accumulate): the codebase reads the user's first role
-        // everywhere, so stacking roles would leave stale leadership behavior.
-        $user->syncRoles([$request->role]);
-
-        return $this->sendResponse($user->fresh()->load('roles'), 'User role updated successfully.');
-    }
-
     public function destroy($id): JsonResponse
     {
         $user = User::find($id);
