@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\V2;
 
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Http\Controllers\API\V2\Concerns\ScopesByRole;
 use App\Models\Bacenta;
 use App\Models\Region;
 use App\Models\Stream;
@@ -23,6 +24,8 @@ use Illuminate\Support\Facades\Log;
  */
 class LeaderController extends BaseController
 {
+    use ScopesByRole;
+
     /**
      * Entity types a user can lead: the model, the column on that model
      * pointing at the leader, and the role that goes with leading it.
@@ -36,8 +39,13 @@ class LeaderController extends BaseController
         'bacenta' => ['model' => Bacenta::class, 'column' => 'leader_id', 'role' => 'Bacenta Leader', 'single' => false],
     ];
 
-    public function show($id): JsonResponse
+    public function show(Request $request, $id): JsonResponse
     {
+        $visibleIds = $this->visibleLeaderIds($request->user());
+        if ($visibleIds !== null && !in_array((int) $id, $visibleIds, true)) {
+            return $this->sendError('You can only view leaders in your region.', [], 403);
+        }
+
         $user = User::find($id);
         if (!$user) {
             return $this->sendError('Leader not found.', [], 404);

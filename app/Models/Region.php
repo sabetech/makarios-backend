@@ -48,6 +48,22 @@ class Region extends Model
         return $this->hasMany(Service::class, 'region_id', 'id');
     }
 
+    /**
+     * Ids of everyone leading a zone or bacenta in this region. This is what
+     * a Region Lead's leaders list and dashboard count are built from.
+     *
+     * @return \Illuminate\Support\Collection<int, int>
+     */
+    public function leaderIds()
+    {
+        return Zone::where('region_id', $this->id)->pluck('leader_id')
+            ->merge(Bacenta::where('region_id', $this->id)->pluck('leader_id'))
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+    }
+
     public function microchurches(){
         return $this->hasMany(MicroChurch::class, 'region_id', 'id');
     }
