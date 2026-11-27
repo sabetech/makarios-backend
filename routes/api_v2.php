@@ -114,15 +114,20 @@ Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
         });
     });
 
+    // Read-only leader access. Region Leads are scoped to the leaders in
+    // their region inside the controllers (ScopesByRole::visibleLeaderIds).
+    Route::middleware('role:Super Admin|General Admin|Bishop|Region Lead')->group(function () {
+        Route::get('leaders', [UserController::class, 'index']);
+        Route::get('leaders/{id}', [LeaderController::class, 'show'])->whereNumber('id');
+    });
+
     Route::middleware('role:Super Admin|General Admin|Bishop')->group(function () {
         Route::controller(UserController::class)->group(function(){
-            Route::get('leaders', 'index');
             Route::get('/roles', 'getRoles');
             Route::delete('leaders/{id}', 'destroy');
         });
         Route::controller(LeaderController::class)->group(function(){
             Route::get('leaders/assignable/{type}', 'assignable');
-            Route::get('leaders/{id}', 'show');
             Route::put('leaders/{id}', 'update');
             Route::post('leaders/{id}/picture', 'updatePicture');
             Route::post('leaders/{id}/assignments', 'assign');

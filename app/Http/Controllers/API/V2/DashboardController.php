@@ -42,14 +42,10 @@ class DashboardController extends BaseController
                 $counts['regions'] = 1;
                 $counts['bacentas'] = Bacenta::where('region_id', $region->id)->count();
                 $counts['members'] = Member::where('region_id', $region->id)->count();
-                $counts['leaders'] = User::whereHas('roles', function($q) {
-                    $q->whereIn('name', ['Bacenta Leader']);
-                })->where(function($q) use ($region, $user) {
-                    $q->where('id', $user->id)
-                      ->orWhereHas('bacenta', function($q2) use ($region) {
-                          $q2->where('region_id', $region->id);
-                      });
-                })->count();
+                // Same set as the Region Lead's leaders list (zone + bacenta leaders).
+                $counts['leaders'] = $region->leaderIds()
+                    ->reject(fn ($id) => $id === (int) $user->id)
+                    ->count();
             }
         } elseif ($user->hasRole('Bacenta Leader')) {
             $bacenta = $user->bacenta;

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\V2;
 
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Http\Controllers\API\V2\Concerns\ScopesByRole;
 use App\Models\User;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Exception;
@@ -13,7 +14,15 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends BaseController
 {
-    public function index() {
+    use ScopesByRole;
+
+    public function index(Request $request) {
+        $user = $request->user();
+        $visibleIds = $this->visibleLeaderIds($user);
+        if ($visibleIds !== null && !$user->region) {
+            return $this->sendError('No region assigned.', [], 403);
+        }
+
         $users = User::with([
                 'roles',
                 'region.stream',
@@ -22,6 +31,7 @@ class UserController extends BaseController
                 'ledBacentas.region.stream',
                 'overseenStreams',
             ])
+            ->when($visibleIds !== null, fn ($q) => $q->whereIn('id', $visibleIds))
             ->get()
             ->map(function($user) {
                 $role = $user->roles->first()->name ?? null;
@@ -38,6 +48,11 @@ class UserController extends BaseController
                     $userArray['leading'] = [
                         "name" => $user->region->name ?? null,
                         "type" => "Region",
+                    ];
+                } elseif ($role == 'Zone Lead') {
+                    $userArray['leading'] = [
+                        "name" => $user->zone->name ?? null,
+                        "type" => "Zone",
                     ];
                 } elseif ($role == 'Bacenta Leader') {
                     $userArray['leading'] = [

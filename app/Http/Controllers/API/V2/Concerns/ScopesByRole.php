@@ -86,6 +86,29 @@ trait ScopesByRole
     }
 
     /**
+     * Which leaders (users) the user may see in the leaders list and profile.
+     * null means no restriction (admins). A Region Lead sees everyone leading
+     * a zone or bacenta in their region; anyone else sees no one.
+     *
+     * @return int[]|null
+     */
+    protected function visibleLeaderIds($user): ?array
+    {
+        if ($user->hasRole(['Super Admin', 'General Admin', 'Bishop'])) {
+            return null;
+        }
+
+        if ($user->hasRole('Region Lead') && $user->region) {
+            return $user->region->leaderIds()
+                ->reject(fn ($id) => $id === (int) $user->id)
+                ->values()
+                ->all();
+        }
+
+        return [];
+    }
+
+    /**
      * Ids of every bacenta the user leads (a leader can lead several).
      *
      * @return int[]
