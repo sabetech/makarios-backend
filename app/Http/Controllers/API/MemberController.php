@@ -228,7 +228,25 @@ class MemberController extends BaseController
             return $this->sendError('Member not found.', ['error'=>'Member not found'], 404);
         }
 
-        $member->update($request->all());
+        // A newly picked photo arrives as a base64 data URL (in `picture`,
+        // or `img_url` from older PWA builds). It must be uploaded, never
+        // stored: members.img_url is varchar(255) and the update would fail.
+        $data = $request->except(['picture', 'img_url']);
+        $photo = collect([$request->input('picture'), $request->input('img_url')])
+            ->first(fn ($value) => is_string($value) && str_starts_with($value, 'data:image/'));
+
+        if ($photo) {
+            $result = Cloudinary::upload($photo, [
+                'folder' => 'members',
+                'resource_type' => 'image',
+            ]);
+            $data['img_url'] = $result->getSecurePath();
+        } elseif ($request->has('img_url') && !str_starts_with((string) $request->input('img_url'), 'data:')) {
+            // An unchanged photo is sent back as its existing URL (or null).
+            $data['img_url'] = $request->input('img_url');
+        }
+
+        $member->update($data);
 
         return $this->sendResponse($member, 'Member updated successfully.');
     }
