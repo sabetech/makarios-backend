@@ -95,9 +95,14 @@ class User extends Authenticatable
                 }
             }
 
+            if (($this->roles[0]->name) == 'Stream Lead' ) {
+                $streams = $this->overseenStreams->pluck('name')->filter();
+                return $streams->isNotEmpty() ? $streams->join(', ') : "Unassigned Stream";
+            }
+
             if (($this->roles[0]->name) == 'Region Lead' ) {
                 if ($this->region) {
-                    return $this->region->region;
+                    return $this->region->name;
                 }else{
                     return "Unassigned Region";
                 }
@@ -111,11 +116,9 @@ class User extends Authenticatable
             }
 
             if (($this->roles[0]->name) == 'Bacenta Leader' ) {
-                if ($this->bacenta) {
-                    return $this->bacenta->name;
-                }else{
-                    return "Unassigned Bacenta";
-                }
+                // A leader may lead several bacentas; show them all.
+                $bacentas = $this->ledBacentas->pluck('name')->filter();
+                return $bacentas->isNotEmpty() ? $bacentas->join(', ') : "Unassigned Bacenta";
             }
             return "Unassigned";
         }else{
