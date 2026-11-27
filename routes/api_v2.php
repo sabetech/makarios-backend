@@ -18,6 +18,7 @@ use App\Http\Controllers\API\V2\MultiplicationCampaignController;
 use App\Http\Controllers\API\V2\ShepherdorialCycleController;
 use App\Http\Controllers\API\V2\AttendanceController;
 use App\Http\Controllers\API\V2\ArrivalController;
+use App\Http\Controllers\API\V2\ImpersonationController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -46,6 +47,13 @@ Route::post('auth/complete-profile', [AuthController::class, 'completeProfile'])
 // TODO: Add v2-only endpoints here.k
 Route::middleware(['auth:sanctum', 'setDatabase'])->group(function () {
     Route::post('users/picture', [UserController::class, 'updatePicture']);
+
+    // Ghost mode. Starting is Super Admin only; stopping is called with the
+    // ghost token itself, so the caller is the impersonated user.
+    Route::post('leaders/{id}/impersonate', [ImpersonationController::class, 'start'])
+        ->middleware('role:Super Admin')
+        ->whereNumber('id');
+    Route::post('impersonate/stop', [ImpersonationController::class, 'stop']);
 
     Route::controller(MemberController::class)->group(function () {
         Route::get('members', 'index');
